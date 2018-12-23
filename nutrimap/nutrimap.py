@@ -138,36 +138,68 @@ amplitude = Slider(title="amplitude", value=1.0, start=-5.0, end=5.0, step=0.1)
 freq = Slider(title="frequency", value=1.0, start=0.1, end=5.1, step=0.1)
 
 # Plot heatmap
-food_mlt = (flowers
-            .drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
-            .melt(id_vars='Shrt_Desc'))
-food_cds = ColumnDataSource(food_mlt)
-mapper = LinearColorMapper(palette='YlOrBr9', low=food_mlt['value'].max(),
-                           high=food_mlt['value'].min())
-tools = ['box_select', 'reset']
-heatmap = figure(tools=tools, plot_height=150, plot_width=400, sizing_mode='fixed',
-                 x_axis_location="above", y_axis_location='right',
-                 x_range=list(food_mlt['variable'].unique()),
-                 y_range=list(food_mlt['Shrt_Desc'].unique()),
-                 tooltips=[('', '@variable @value')])
-heatmap.height = 40 + 20 * food_mlt['Shrt_Desc'].nunique()
-heatmap.xaxis.major_label_orientation = 0.8
-heatmap.axis.major_label_standoff = 0
-heatmap.grid.grid_line_color = None
-heatmap.axis.axis_line_color = None
-heatmap.axis.major_tick_line_color = None
-heatmap.toolbar.autohide = True
-htmp = heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
-                    source=food_cds, fill_color=transform('value', mapper),
-                    line_color=None)
 
-# Set up layouts and add to document
-inputs = widgetbox(text, offset, amplitude, freq)
-lay = row(plot, heatmap, height=300, width=2000,
-             sizing_mode='fixed')
-curdoc().add_root(lay)
-curdoc().title = "Sliders"
 
+def create_heatmap(df):
+    if df.shape[0] > 2:
+        from scipy.cluster.hierarchy import dendrogram, linkage
+        Z = linkage(df.select_dtypes('number').dropna(), 'single')
+        dn = dendrogram(Z, no_plot=True)
+        df_srtd = df.iloc[dn['leaves']]
+    df_mlt = (df_srtd
+              .drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
+              .melt(id_vars='Shrt_Desc'))
+    # food_mlt2 = flowers2.melt(id_vars='Shrt_Desc').dropna()
+    # food_cds = ColumnDataSource(food_mlt2)
+    plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
+    mapper = LinearColorMapper(palette='YlOrBr9', low=df_mlt['value'].max(),
+                               high=df_mlt['value'].min())
+    food_cds = ColumnDataSource(df_mlt)
+    tools = ['box_select', 'reset']
+    heatmap = figure(tools=tools, plot_height=plot_height, plot_width=400,
+                     sizing_mode='fixed', x_axis_location="above",
+                     y_axis_location='right',
+                     x_range=list(df_mlt['variable'].unique()),
+                     y_range=list(df_mlt['Shrt_Desc'].unique()), tooltips=[('',
+                         '@variable @value')])
+    heatmap.xaxis.major_label_orientation = 0.8
+    heatmap.axis.major_label_standoff = 0
+    heatmap.grid.grid_line_color = None
+    heatmap.axis.axis_line_color = None
+    heatmap.axis.major_tick_line_color = None
+    heatmap.toolbar.autohide = True
+    htmp = heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
+                        source=food_cds, fill_color=transform('value', mapper),
+                        line_color=None)
+    return heatmap
+
+
+# food_mlt = (flowers
+#             .drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
+#             .melt(id_vars='Shrt_Desc'))
+# tools = ['box_select', 'reset']
+# heatmap = figure(tools=tools, plot_height=150, plot_width=400, sizing_mode='fixed',
+#                  x_axis_location="above", y_axis_location='right',
+#                  x_range=list(food_mlt['variable'].unique()),
+#                  y_range=list(food_mlt['Shrt_Desc'].unique()),
+#                  tooltips=[('', '@variable @value')])
+# heatmap.height = 40 + 20 * food_mlt['Shrt_Desc'].nunique()
+# heatmap.xaxis.major_label_orientation = 0.8
+# heatmap.axis.major_label_standoff = 0
+# heatmap.grid.grid_line_color = None
+# heatmap.axis.axis_line_color = None
+# heatmap.axis.major_tick_line_color = None
+# heatmap.toolbar.autohide = True
+# htmp = heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
+#                     source=food_cds, fill_color=transform('value', mapper),
+#                     line_color=None)
+
+# from bokeh.io import output_file, show
+from bokeh.layouts import widgetbox
+from bokeh.models.widgets import Select
+
+# menu = [("Item 1", "item_1"), ("Item 2", "item_2"), None, ("Item 3", "item_3")]
+# dropdown.on_change(drop_select)
 
 # Set up callback
 # def update_data(attrname, old, new):
@@ -181,21 +213,62 @@ curdoc().title = "Sliders"
     # w.on_change('value', update_data)
 
 
-def update(attr, old, new):
-    flowers2 = flowers.iloc[new].copy()
-    if len(new) > 2:
-        from scipy.cluster.hierarchy import dendrogram, linkage
-        Z = linkage(flowers2.select_dtypes('number').dropna(), 'single')
-        dn = dendrogram(Z, no_plot=True)
-        flowers2 = flowers2.iloc[dn['leaves']]
-    food_mlt2 = flowers2.melt(id_vars='Shrt_Desc').dropna()
-    food_cds = ColumnDataSource(food_mlt2)
-    htmp.data_source.data = food_cds.data
+def update_webapp(df_sub):
+    lay.children[0] = create_heatmap(df_sub)
+
+
+def drop_select(attr, old, new):
+    print(attr)
+    print(old)
+    print(new)
+    df_sub = flowers.loc[flowers['Category'] == new]
+    from bokeh.models import Selection
+    print(df_sub.index)
+
+    df_mlt = (flowers
+              .drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
+              .melt(id_vars='Shrt_Desc'))
+    print(df_mlt.loc[df_mlt['variable'] == 'Category'])
+    # df_sub_mlt = df_mlt.loc[(df_mlt['variable'] == 'Category')].loc[(df_mlt['value'] == new)]
+    # sctr.data_source.selected = Selection(indices=list(df_sub_mlt.index))
+    print(sctr.data_source)
+    update_webapp(df_sub)
+
+
+def selection_change(attr, old, new):
+    print(attr)
+    print(old)
+    print(new)
+    if len(new) == 0:
+        flowers2 = flowers.copy()
+    else:
+        flowers2 = flowers.iloc[new].copy()
+    update_webapp(flowers2)
+
+
+sctr.data_source.selected.on_change('indices', selection_change)
+
+menu = [(grp, grp) for grp in food_grps.keys()]
+dropdown = Select(options=menu)
+dropdown.on_change('value', drop_select) #lambda attr, old, new: update(attr, old, new))
+
+# Set up layouts and add to document
+inputs = widgetbox(text, offset, amplitude, freq)
+lay = row(
+        create_heatmap(flowers),
+          column(widgetbox(dropdown), plot), height=300, width=2000, sizing_mode='fixed')
+curdoc().add_root(lay)
+curdoc().title = "Sliders"
+
+
+
+
+
+    # htmp.data_source.data = food_cds.data
     # Update heatmap rows, figure size and y-axis labels
-    heatmap.y_range.factors = food_mlt2.Shrt_Desc.unique().tolist()
+    # heatmap.y_range.factors = food_mlt2.Shrt_Desc.unique().tolist()
     # print(len(heatmap.y_range.factors), heatmap.height)
     # heatmap.height = 40 + 20 * food_mlt2.Shrt_Desc.nunique()
     # print(len(heatmap.y_range.factors), heatmap.height)
 
 
-sctr.data_source.selected.on_change('indices', update)
