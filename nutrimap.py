@@ -13,31 +13,74 @@ from bokeh.models import ColumnDataSource, LinearColorMapper
 coi = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
        'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)',
        'Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)']
-grains = ['Quinoa,unckd', 'Oats', 'Barley,hulled', 'Barley,pearled,raw',
-          'Buckwheat', 'Rice,brown,long-grain,raw', 'Wild rice,raw',
-          'Millet,raw', 'Bulgur,dry', 'Spelt,unckd', 'Wheat,durum',
-          'Wheat,soft white', 'Wheat,hard red winter', 'Sorghum grain',
-          'Wheat,kamut khorasan,unckd', 'Rice,white,long-grain,reg,raw,unenr',
-          'Semolina,unenriched', 'Triticale', 'Amaranth grain,unckd',
-          'Teff,unckd', 'Rye grain'][:10]
-vegetables = ['Brussel sprouts, raw', 'Beets,raw', 'Broccoli,raw',
-              'Cauliflower,raw', 'Eggplant,raw', ]
-greens = ['Kale,raw', 'Spinach,raw', 'Lettuce,cos or romaine,raw',
-          'Chard,swiss,raw', 'Arugula,raw', 'Collards,raw',
-          'Lettuce,iceberg (incl crisphead types),raw', 'Beet greens,raw',
-          'Mustard greens,raw', 'Cabbage,chinese (pak-choi),raw',
-          'Cabbage,raw', ]
-legumes = ['Beans,black turtle,mature seeds,raw', 'Lentils,raw',
-           'Lentils,pink or red,raw']
-flowers = read_csv('../ABBREV.csv', usecols=coi)
-flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str.capitalize()
-flowers = flowers.loc[flowers['Shrt_Desc'].isin(grains + vegetables + greens +
-                      legumes)]
-flowers['Category'] = ''
-flowers.loc[flowers['Shrt_Desc'].isin(grains), 'Category'] = 'grains'
-flowers.loc[flowers['Shrt_Desc'].isin(vegetables), 'Category'] = 'vegetables'
-flowers.loc[flowers['Shrt_Desc'].isin(greens), 'Category'] = 'greens'
-flowers.loc[flowers['Shrt_Desc'].isin(legumes), 'Category'] = 'legumes'
+food_grps = {
+    'grains': ['Quinoa,unckd', 'Oats', 'Barley,hulled', 'Barley,pearled,raw',
+               'Buckwheat', 'Rice,brown,long-grain,raw', 'Wild rice,raw',
+               'Millet,raw', 'Bulgur,dry', 'Spelt,unckd', 'Wheat,durum',
+               'Wheat,soft white', 'Wheat,hard red winter', 'Sorghum grain',
+               'Wheat,kamut khorasan,unckd', 'Amaranth grain,unckd',
+               'Rice,white,long-grain,reg,raw,unenr', 'Semolina,unenriched',
+               'Triticale', 'Teff,unckd', 'Rye grain'],
+    'vegetables': ['Brussels sprouts,raw', 'Beets,raw', 'Broccoli,raw',
+                   'Cauliflower,raw', 'Eggplant,raw', ],
+    'greens': ['Kale,raw', 'Spinach,raw', 'Lettuce,cos or romaine,raw',
+               'Chard,swiss,raw', 'Arugula,raw', 'Collards,raw',
+               'Lettuce,iceberg (incl crisphead types),raw', 'Beet greens,raw',
+               'Mustard greens,raw', 'Cabbage,chinese (pak-choi),raw',
+               'Cabbage,raw', ],
+    'legumes': ['Beans,black turtle,mature seeds,raw', 'Lentils,raw',
+                'Lentils,pink or red,raw', 'Beans,snap,green,raw',
+                'Soybeans,green,raw', 'Beans,pinto,mature seeds,sprouted,raw',
+                'Beans,snap,yellow,raw', 'Beans,adzuki,mature seeds,raw',
+                'Beans,black,mature seeds,raw',
+                'Beans,black turtle,mature seeds,raw',
+                'Beans,cranberry (roman),mature seeds,raw',
+                'Beans,french,mature seeds,raw', 'Beans,navy,mature seeds,raw',
+                'Beans,kidney,all types,mature seeds,raw',
+                'Beans,pink,mature seeds,raw', 'Beans,pinto,mature seeds,raw',
+                'Beans,sml white,mature seeds,raw',
+                'Beans,white,mature seeds,raw', 'Soybeans,mature seeds,raw',
+                'Broadbeans (fava beans),mature seeds,raw', 'Peas,green,raw',
+                'Chickpeas (garbanzo bns,bengal gm),mature seeds,raw',
+                'Peas,grn,split,mature seeds,raw'],
+    'nuts': ['Beechnuts,dried', 'Brazilnuts,dried,unblanched',
+             'Butternuts,dried',
+             'Nuts,cashew nuts,raw',
+             'Hazelnuts or filberts',
+             'Hickorynuts,dried',
+             'Macadamia nuts,raw',
+             'Nuts,pilinuts,dried', 'Nuts,pine nuts,dried',
+             'Pistachio nuts,raw',
+             # 'Pistachio nuts,dry rstd,wo/salt', 'Walnuts,black,dried',
+             'Walnuts,english',
+             'Coconut meat,dried (desiccated),crmd',
+             # 'Cashew nuts,dry rstd,w/salt', 'Cashew nuts,oil rstd,w/salt',
+             # 'Macadamia nuts,dry rstd,w/salt',
+             # 'Pistachio nuts,dry rstd,w/salt',
+             'Peanuts,all types,raw',# 'Peanuts,all types,oil-roasted,w/salt',
+             # 'Peanuts,all types,dry-roasted,w/salt',
+             # 'Peanuts,all types,oil-roasted,wo/ salt',
+             # 'Peanuts,all types,dry-roasted,wo/salt',
+             ]
+    }
+foods_all = read_csv('./ABBREV.csv', usecols=coi, index_col=0)
+foods_all.index = foods_all.index.str.capitalize()
+foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
+# flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str.capitalize()
+# flowers = flowers.loc[flowers['Shrt_Desc'].isin()]
+foods['Category'] = ''
+for grp_name in food_grps:
+    # short_names = [item[:10] for item in food_grps[grp_name]]
+    # foods.loc[food_grps[grp_name], 'Category'] = grp_name
+    foods.loc[food_grps[grp_name], 'Category'] = grp_name
+# for grp_name in food_grps:
+#     food_grps[grp_name] = [item[:10] for item in food_grps[grp_name]]
+#     foods.loc[food_grps[grp_name], 'Category'] = grp_name
+# flowers.loc[flowers['Shrt_Desc'].isin(food_grps['grains']), 'Category'] = 'grains'
+# flowers.loc[flowers['Shrt_Desc'].isin(food_grps['vegetables']), 'Category'] = 'vegetables'
+# flowers.loc[flowers['Shrt_Desc'].isin(food_grps['greens']), 'Category'] = 'greens'
+# flowers.loc[flowers['Shrt_Desc'].isin(food_grps['legumes']), 'Category'] = 'legumes'
+flowers = foods.reset_index().copy()
 flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Sugar_Tot_(g)'] = 1.1
 flowers.loc[flowers['Shrt_Desc'] == 'Quinoa,unckd', 'Sugar_Tot_(g)'] = 6.1
 flowers.loc[flowers['Shrt_Desc'] == 'Buckwheat', 'Sugar_Tot_(g)'] = 1.9
