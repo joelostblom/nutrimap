@@ -182,8 +182,15 @@ curdoc().title = "Sliders"
 
 
 def update(attr, old, new):
-    food_mlt2 = flowers.iloc[new].melt(id_vars='Shrt_Desc').dropna()
+    flowers2 = flowers.iloc[new].copy()
+    if len(new) > 2:
+        from scipy.cluster.hierarchy import dendrogram, linkage
+        Z = linkage(flowers2.select_dtypes('number').dropna(), 'single')
+        dn = dendrogram(Z, no_plot=True)
+        flowers2 = flowers2.iloc[dn['leaves']]
+    food_mlt2 = flowers2.melt(id_vars='Shrt_Desc').dropna()
     food_cds = ColumnDataSource(food_mlt2)
+    htmp.data_source.data = food_cds.data
     # Update heatmap rows, figure size and y-axis labels
     heatmap.y_range.factors = food_mlt2.Shrt_Desc.unique().tolist()
     htmp.data_source.data = food_cds.data
