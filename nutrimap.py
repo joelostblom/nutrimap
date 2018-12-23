@@ -142,14 +142,15 @@ food_mlt = (flowers
             .drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
             .melt(id_vars='Shrt_Desc'))
 food_cds = ColumnDataSource(food_mlt)
-mapper = LinearColorMapper(palette='YlOrBr9', low=food_mlt['value'].min(),
-                           high=food_mlt['value'].max())
+mapper = LinearColorMapper(palette='YlOrBr9', low=food_mlt['value'].max(),
+                           high=food_mlt['value'].min())
 tools = ['box_select', 'reset']
-heatmap = figure(tools=tools, plot_height=150, plot_width=300,
+heatmap = figure(tools=tools, plot_height=150, plot_width=400, sizing_mode='fixed',
                  x_axis_location="above", y_axis_location='right',
                  x_range=list(food_mlt['variable'].unique()),
-                 y_range=list(food_mlt['Shrt_Desc'].unique()))
-heatmap.height = 50 + 50 * food_mlt['Shrt_Desc'].nunique()
+                 y_range=list(food_mlt['Shrt_Desc'].unique()),
+                 tooltips=[('', '@variable @value')])
+heatmap.height = 40 + 20 * food_mlt['Shrt_Desc'].nunique()
 heatmap.xaxis.major_label_orientation = 0.8
 heatmap.axis.major_label_standoff = 0
 heatmap.grid.grid_line_color = None
