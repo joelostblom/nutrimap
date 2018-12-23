@@ -88,21 +88,24 @@ flowers.loc[flowers['Shrt_Desc'] == 'Millet,raw', 'Sugar_Tot_(g)'] = 1.5
 # used entry for semolina flour as th evalues were very similar
 flowers.loc[flowers['Shrt_Desc'] == 'Semolina,unenriched',
             'Sugar_Tot_(g)'] = 0.7
-# flowers.loc['Triticale', 'Sugar_Tot_(g)'] = 1
-# flowers.loc['Triticale', 'Fiber_TD_(g)'] = 14.6
+flowers.loc['Triticale', 'Sugar_Tot_(g)'] = 1
+flowers.loc['Triticale', 'Fiber_TD_(g)'] = 14.6
 flowers = flowers.dropna()
 flow_num = flowers.select_dtypes('number')
 flowers = (((flow_num - flow_num.mean()) /
             flow_num.std()).join(flowers.select_dtypes('object')))
 
+flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str[:20]
 # Plot projection
+plot = figure(plot_height=400, plot_width=400, title='Food similarity',
+              tools="box_select,pan,reset,save,wheel_zoom,tap",
+              active_drag='box_select', tooltips=[('', '@Shrt_Desc'),
+              ('Protein', '@Protein_(g)'), ('Energy', '@Energ_Kcal')])
+plot.toolbar.autohide = True
 flow_num = flowers.select_dtypes('number')
 pca_coords = PCA(n_components=2).fit_transform(flow_num)
 # tsne_coords = TSNE(n_components=2).fit_transform(flow_num)
 flowers['tSNE_x'], flowers['tSNE_y'] = pca_coords.T
-plot = figure(plot_height=400, plot_width=400, title="my sine wave",
-              tools="box_select,pan,reset,save,wheel_zoom",
-              active_drag='box_select')
 # Set cmap to a repeating version of 2020 if there are many colors
 n_grps = flowers['Category'].nunique()
 if n_grps <= 10:
@@ -113,14 +116,20 @@ else:
 cat_cmap = {cat: cmap[num] for num, cat in
             enumerate(flowers['Category'].unique())}
 flowers['colors'] = [cat_cmap[cat] for cat in flowers['Category']]
+# TODO Figure out how to get clickable legend working properly with box select
 # Loop for the clicks to work on the legend
-for grp_name, grp in flowers.groupby('Category'):
-    sctr = plot.circle(grp['tSNE_x'], grp['tSNE_y'], line_color=None,
-                       fill_color=cat_cmap[grp_name], size=7, fill_alpha=0.7,
-                       legend=grp_name, muted_alpha=0.1,
-                       muted_color=cat_cmap[grp_name])
-plot.legend.click_policy = 'mute'
-plot.toolbar.autohide = True
+# for grp_name, grp in flowers.groupby('Category'):
+#     sctr = plot.circle(grp['tSNE_x'], grp['tSNE_y'], line_color=None,
+#                        fill_color=cat_cmap[grp_name], size=7, fill_alpha=0.7,
+#                        legend=grp_name, muted_alpha=0.1,
+#                        muted_color=cat_cmap[grp_name])
+# Temporary
+food_cds1 = ColumnDataSource(flowers)
+sctr = plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
+                   size=7, fill_alpha=0.7, legend='Category', muted_alpha=0.1,
+                   muted_color='colors', source=food_cds1)
+# plot.legend.label_text_font_size(5)
+# plot.legend.click_policy = 'mute'
 
 # Set up widgets
 text = TextInput(title="title", value='my sine wave')
