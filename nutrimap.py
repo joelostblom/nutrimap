@@ -193,8 +193,9 @@ def update(attr, old, new):
     htmp.data_source.data = food_cds.data
     # Update heatmap rows, figure size and y-axis labels
     heatmap.y_range.factors = food_mlt2.Shrt_Desc.unique().tolist()
-    htmp.data_source.data = food_cds.data
-    heatmap.height = 50 + 50 * food_mlt2.Shrt_Desc.nunique()
+    # print(len(heatmap.y_range.factors), heatmap.height)
+    # heatmap.height = 40 + 20 * food_mlt2.Shrt_Desc.nunique()
+    # print(len(heatmap.y_range.factors), heatmap.height)
 
 
 sctr.data_source.selected.on_change('indices', update)
