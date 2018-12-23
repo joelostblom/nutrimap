@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from bokeh.io import curdoc
 from bokeh.plotting import figure
 from bokeh.transform import transform
-from bokeh.layouts import widgetbox, column
+from bokeh.layouts import widgetbox, column, row
 from bokeh.models.widgets import Slider, TextInput
 from bokeh.palettes import Category10_10, Category20_20
 from bokeh.models import ColumnDataSource, LinearColorMapper
@@ -110,7 +110,7 @@ htmp = heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
 
 # Set up layouts and add to document
 inputs = widgetbox(text, offset, amplitude, freq)
-lay = column(inputs, plot, heatmap, height=300, width=800,
+lay = row(plot, heatmap, height=300, width=2000,
              sizing_mode='fixed')
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
