@@ -1,0 +1,33 @@
+Amount,MatchedNutrient,Nutrient,Unit
+1000.0,Vit_A_RAE,Vitamin A,RE
+5.0,Vit_D_uq,Vitamin D,µg
+10.0,Vit_E_(mg),Vitamin E,mg
+60.0,Vit_C_(mg),Vitamin C,mg
+1.3,Thiamin_(mg),"Thiamin, Thiamine or Vitamin B1",mg
+1.6,Riboflavin_(mg),Riboflavin or Vitamin B2,mg
+23.0,Niacin_(mg),Niacin,NE
+1.8,Vit_B6_(mg),Vitamin B6,mg
+220.0,Food_Folate_(µg),Folacin or Folate,µg
+2.0,Vit_B12_(µg),Vitamin B12,µg
+80.0,Vit_K_(ug),Vitamin K,µg
+1100.0,Calcium_(mg),Calcium,mg
+1100.0,Phosphorus_(mg),Phosphorus,mg
+250.0,Magnesium_(mg),Magnesium,mg
+14.0,Iron_(mg),Iron,mg
+9.0,Zinc_(mg),Zinc,mg
+50.0,Selenium_(µg),Selenium,µg
+2.0,Copper_mg),Copper,mg
+2.0,Manganese_(mg),Manganese,mg
+2000.0,Energ_Kcal,Energy,kcal
+56.0,Protein_(g),Protein,g
+200.0,Carbohydrt_(g),Carbs,g
+65.0,Lipid_Tot_(g),Fat,g
+20.0,FA_Sat_(g),SatFat,g
+22.0,FA_Mono_(g),MonoFat,g
+22.0,FA_Poly_(g),PolyFat,g
+22.0,Sugar_Tot_(g),Sugar,g
+50.0,Fiber_TD_(g),Fiber,g
+4700.0,Potassium_(mg),Potassium,mg
+2300.0,Sodium_(mg),Sodium,mg
+3000.0,Vit_A_IU,Vitamine A,iu
+120.0,Vit_K_(µg),Vitamine K,ug
