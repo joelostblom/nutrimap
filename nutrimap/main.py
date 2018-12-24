@@ -13,6 +13,16 @@ from bokeh.models import ColumnDataSource, LinearColorMapper, LogColorMapper
 coi = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
        'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)',
        'Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)']
+vitmins = ['Calcium_(mg)',
+       'Iron_(mg)', 'Magnesium_(mg)', 'Phosphorus_(mg)', 'Potassium_(mg)',
+       'Sodium_(mg)', 'Zinc_(mg)', 'Copper_mg)', 'Manganese_(mg)',
+       'Selenium_(µg)', 'Thiamin_(mg)', 'Riboflavin_(mg)',
+       'Niacin_(mg)',
+       'Vit_B6_(mg)',  'Vit_A_IU',
+       'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
+# 'Panto_Acid_mg)', 'Folate_DFE_(µg)',
+#vit a from chronometer, not canada
+# coi = coi + vitmins
 food_grps = {
     'grains': ['Quinoa,unckd', 'Oats', 'Barley,hulled', 'Barley,pearled,raw',
                'Buckwheat', 'Rice,brown,long-grain,raw', 'Wild rice,raw',
@@ -147,6 +157,8 @@ food_cds1 = ColumnDataSource(flowers)
 sctr = plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
                    size=7, fill_alpha=0.7, legend='Category', muted_alpha=0.1,
                    muted_color='colors', source=food_cds1)
+# plot.legend.location = (300, 0)
+
 # plot.legend.label_text_font_size(5)
 # plot.legend.click_policy = 'mute'
 
