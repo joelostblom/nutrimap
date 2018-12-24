@@ -6,8 +6,8 @@ from bokeh.plotting import figure
 from bokeh.transform import transform
 from bokeh.layouts import widgetbox, column, row
 from bokeh.models.widgets import Slider, TextInput
-from bokeh.palettes import Category10_10, Category20_20
-from bokeh.models import ColumnDataSource, LinearColorMapper
+from bokeh.palettes import Category10_10, Category20_20, YlOrBr9
+from bokeh.models import ColumnDataSource, LinearColorMapper, LogColorMapper
 
 
 coi = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
@@ -174,8 +174,9 @@ def create_heatmap(df):
     # food_mlt2 = flowers2.melt(id_vars='Shrt_Desc').dropna()
     # food_cds = ColumnDataSource(food_mlt2)
     plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
-    mapper = LinearColorMapper(palette='YlOrBr9', low=df_mlt['value'].max(),
-                               high=df_mlt['value'].min())
+    # mapper = LinearColorMapper(palette='YlOrBr9', low=df_mlt['value'].max(),
+    #                            high=df_mlt['value'].min())
+    mapper = LogColorMapper(palette=YlOrBr9[::-1], low=0, high=100)
     food_cds = ColumnDataSource(df_mlt)
     tools = ['box_select', 'reset']
     heatmap = figure(tools=tools, plot_height=plot_height, plot_width=400,
