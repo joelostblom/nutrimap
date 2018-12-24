@@ -219,7 +219,7 @@ def create_heatmap(df):
 
 # from bokeh.io import output_file, show
 from bokeh.layouts import widgetbox
-from bokeh.models.widgets import Select
+from bokeh.models.widgets import Select, MultiSelect
 
 # menu = [("Item 1", "item_1"), ("Item 2", "item_2"), None, ("Item 3", "item_3")]
 # dropdown.on_change(drop_select)
@@ -244,7 +244,7 @@ def drop_select(attr, old, new):
     print(attr)
     print(old)
     print(new)
-    df_sub = flowers.loc[flowers['Category'] == new]
+    df_sub = flowers.loc[flowers['Category'].isin(new)]
     from bokeh.models import Selection
     print(df_sub.index)
 
@@ -272,14 +272,16 @@ def selection_change(attr, old, new):
 sctr.data_source.selected.on_change('indices', selection_change)
 
 menu = [(grp, grp) for grp in food_grps.keys()]
-dropdown = Select(options=menu)
-dropdown.on_change('value', drop_select) #lambda attr, old, new: update(attr, old, new))
+food_grp_mselect = MultiSelect(options=menu)
+food_grp_mselect.size = 5
+food_grp_mselect.on_change('value', drop_select) #lambda attr, old, new: update(attr, old, new))
 
 # Set up layouts and add to document
 inputs = widgetbox(text, offset, amplitude, freq)
 lay = row(
         create_heatmap(flowers),
-          column(widgetbox(dropdown), plot), height=300, width=2000, sizing_mode='fixed')
+          column(widgetbox(food_grp_mselect), plot), height=300, width=2000,
+                 sizing_mode='fixed')
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
 
