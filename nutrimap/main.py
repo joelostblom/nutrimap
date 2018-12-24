@@ -1,4 +1,4 @@
-from pandas import read_csv
+from pandas import read_csv, Series
 # from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from bokeh.io import curdoc
@@ -68,14 +68,6 @@ foods_all.index = foods_all.index.str.capitalize()
 foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
 # flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str.capitalize()
 # flowers = flowers.loc[flowers['Shrt_Desc'].isin()]
-foods['Category'] = ''
-for grp_name in food_grps:
-    # short_names = [item[:10] for item in food_grps[grp_name]]
-    # foods.loc[food_grps[grp_name], 'Category'] = grp_name
-    foods.loc[food_grps[grp_name], 'Category'] = grp_name
-# for grp_name in food_grps:
-#     food_grps[grp_name] = [item[:10] for item in food_grps[grp_name]]
-#     foods.loc[food_grps[grp_name], 'Category'] = grp_name
 # flowers.loc[flowers['Shrt_Desc'].isin(food_grps['grains']), 'Category'] = 'grains'
 # flowers.loc[flowers['Shrt_Desc'].isin(food_grps['vegetables']), 'Category'] = 'vegetables'
 # flowers.loc[flowers['Shrt_Desc'].isin(food_grps['greens']), 'Category'] = 'greens'
@@ -88,22 +80,49 @@ flowers.loc[flowers['Shrt_Desc'] == 'Millet,raw', 'Sugar_Tot_(g)'] = 1.5
 # used entry for semolina flour as th evalues were very similar
 flowers.loc[flowers['Shrt_Desc'] == 'Semolina,unenriched',
             'Sugar_Tot_(g)'] = 0.7
-flowers.loc['Triticale', 'Sugar_Tot_(g)'] = 1
-flowers.loc['Triticale', 'Fiber_TD_(g)'] = 14.6
+flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Sugar_Tot_(g)'] = 1
+flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Fiber_TD_(g)'] = 14.6
+na_indices = flowers.isnull().any(axis=1).nonzero()
+na_foods = flowers.iloc[na_indices]['Shrt_Desc'].values
 flowers = flowers.dropna()
-flow_num = flowers.select_dtypes('number')
-flowers = (((flow_num - flow_num.mean()) /
-            flow_num.std()).join(flowers.select_dtypes('object')))
+
+
+# RDI
+df_rdi = read_csv('nutrimap/data/matched_rdi.csv')
+flowers = flowers.set_index('Shrt_Desc')
+def get_rdi(row):
+    new_row = Series()
+    for col_name in row.index:
+        new_row.loc[col_name] = round(100 * row[col_name] /
+            df_rdi.loc[df_rdi['MatchedNutrient'] == col_name, 'Amount'].values[0], 1)
+    return new_row
+flowers = flowers.apply(get_rdi, axis=1)
+flowers['Category'] = ''
+for grp_name in food_grps:
+    # short_names = [item[:10] for item in food_grps[grp_name]]
+    # foods.loc[food_grps[grp_name], 'Category'] = grp_name
+    new_food = [x for x in food_grps[grp_name] if x not in na_foods]
+    flowers.loc[new_food, 'Category'] = grp_name
+# for grp_name in food_grps:
+#     food_grps[grp_name] = [item[:10] for item in food_grps[grp_name]]
+#     foods.loc[food_grps[grp_name], 'Category'] = grp_name
+flowers = flowers.reset_index().copy()
 
 flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str[:20]
 # Plot projection
 plot = figure(plot_height=400, plot_width=400, title='Food similarity',
               tools="box_select,pan,reset,save,wheel_zoom,tap",
-              active_drag='box_select', tooltips=[('', '@Shrt_Desc'),
-              ('Protein', '@Protein_(g)'), ('Energy', '@Energ_Kcal')])
+              active_drag='box_select', tooltips=[('', '@Shrt_Desc')],)
+              # x_axis_type='log')
+              # x_range=(-2, 8))
+              # ('Protein', '@Protein_(g)'), ('Energy', '@Energ_Kcal')])
 plot.toolbar.autohide = True
+
+# Standardize for PCA
 flow_num = flowers.select_dtypes('number')
-pca_coords = PCA(n_components=2).fit_transform(flow_num)
+flow_num_stndr = (flow_num - flow_num.mean()) / flow_num.std()
+            #).join(flowers.select_dtypes('object')))
+pca_coords = PCA(n_components=2).fit_transform(flow_num_stndr)
 # tsne_coords = TSNE(n_components=2).fit_transform(flow_num)
 flowers['tSNE_x'], flowers['tSNE_y'] = pca_coords.T
 # Set cmap to a repeating version of 2020 if there are many colors
@@ -141,13 +160,16 @@ freq = Slider(title="frequency", value=1.0, start=0.1, end=5.1, step=0.1)
 
 
 def create_heatmap(df):
+    df = df.drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
+    df.columns = df.columns.str.rpartition('_').get_level_values(0)
+    df = df.rename(columns={'Shrt': 'Shrt_Desc'})
     if df.shape[0] > 2:
         from scipy.cluster.hierarchy import dendrogram, linkage
         Z = linkage(df.select_dtypes('number').dropna(), 'single')
         dn = dendrogram(Z, no_plot=True)
         df_srtd = df.iloc[dn['leaves']]
     df_mlt = (df_srtd
-              .drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
+              # .select_dtypes('number')
               .melt(id_vars='Shrt_Desc'))
     # food_mlt2 = flowers2.melt(id_vars='Shrt_Desc').dropna()
     # food_cds = ColumnDataSource(food_mlt2)
