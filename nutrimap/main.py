@@ -184,7 +184,7 @@ def create_heatmap(df):
                      y_axis_location='right',
                      x_range=list(df_mlt['variable'].unique()),
                      y_range=list(df_mlt['Shrt_Desc'].unique()), tooltips=[('',
-                         '@variable @value')])
+                         '@variable @value{0.0} %')])
     heatmap.xaxis.major_label_orientation = 0.8
     heatmap.axis.major_label_standoff = 0
     heatmap.grid.grid_line_color = None
