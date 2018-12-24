@@ -63,7 +63,7 @@ food_grps = {
              # 'Peanuts,all types,dry-roasted,wo/salt',
              ]
     }
-foods_all = read_csv('./ABBREV.csv', usecols=coi, index_col=0)
+foods_all = read_csv('nutrimap/data/ABBREV.csv', usecols=coi, index_col=0)
 foods_all.index = foods_all.index.str.capitalize()
 foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
 # flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str.capitalize()
