@@ -1,12 +1,13 @@
 from pandas import read_csv, Series
 # from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
+from scipy.cluster.hierarchy import dendrogram, linkage
 from bokeh.io import curdoc
 from bokeh.plotting import figure
 from bokeh.transform import transform
+from bokeh.models.widgets import MultiSelect
 from bokeh.layouts import widgetbox, column, row
 from bokeh.models import ColumnDataSource, LogColorMapper
-from bokeh.models.widgets import Slider, TextInput, MultiSelect
 from bokeh.palettes import Category10_10, Category20_20, YlOrBr9
 
 
