@@ -79,7 +79,9 @@ flowers = flowers.dropna()
 df_rdi = read_csv('nutrimap/data/matched_rdi.csv')
 flowers = flowers.set_index('Shrt_Desc')
 
+
 def get_rdi(row):
+    '''Calculate the RDI'''
     new_row = Series()
     for col_name in row.index:
         new_row.loc[col_name] = round(
@@ -116,25 +118,24 @@ else:
 cat_cmap = {cat: cmap[num] for num, cat in
             enumerate(flowers['Category'].unique())}
 flowers['colors'] = [cat_cmap[cat] for cat in flowers['Category']]
-# Temporary
 food_cds1 = ColumnDataSource(flowers)
 sctr = plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
                    size=7, fill_alpha=0.7, legend='Category', muted_alpha=0.1,
                    muted_color='colors', source=food_cds1)
 
 
-# Plot heatmap
 def create_heatmap(df):
+    '''Create a heatmap ordered by food similarity'''
     df = df.drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
     df.columns = df.columns.str.rpartition('_').get_level_values(0)
     df = df.rename(columns={'Shrt': 'Shrt_Desc'})
     if df.shape[0] > 2:
-        from scipy.cluster.hierarchy import dendrogram, linkage
         Z = linkage(df.select_dtypes('number').dropna(), 'single')
         dn = dendrogram(Z, no_plot=True)
         df_srtd = df.iloc[dn['leaves']]
-    df_mlt = (df_srtd
-              .melt(id_vars='Shrt_Desc'))
+        df_mlt = df_srtd.melt(id_vars='Shrt_Desc')
+    else:
+        df_mlt = df.melt(id_vars='Shrt_Desc')
     plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
     mapper = LogColorMapper(palette=YlOrBr9[::-1], low=0, high=100)
     food_cds = ColumnDataSource(df_mlt)
@@ -145,46 +146,49 @@ def create_heatmap(df):
                      x_range=list(df_mlt['variable'].unique()),
                      y_range=list(df_mlt['Shrt_Desc'].unique()),
                      tooltips=[('', '@variable @value{0.0} %')])
+    heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
+                 source=food_cds, fill_color=transform('value', mapper),
+                 line_color=None)
     heatmap.xaxis.major_label_orientation = 0.8
     heatmap.axis.major_label_standoff = 0
     heatmap.grid.grid_line_color = None
     heatmap.axis.axis_line_color = None
     heatmap.axis.major_tick_line_color = None
     heatmap.toolbar.autohide = True
-    heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
-                 source=food_cds, fill_color=transform('value', mapper),
-                 line_color=None)
     return heatmap
 
 
-def update_webapp(df_sub):
-    lay.children[0] = create_heatmap(df_sub)
+def replace_heatmap(df):
+    '''Replace the heatmap figure with one of the selected subset'''
+    lay.children[0] = create_heatmap(df)
 
 
-def drop_select(attr, old, new):
+def select_category(attr, old, new):
+    '''Subset foods on the selected category'''
     df_sub = flowers.loc[flowers['Category'].isin(new)]
-    update_webapp(df_sub)
+    replace_heatmap(df_sub)
 
 
 def selection_change(attr, old, new):
+    '''Subset foods on the selected data points'''
     if len(new) == 0:
-        flowers2 = flowers.copy()
+        df_sub = flowers.copy()
     else:
-        flowers2 = flowers.iloc[new].copy()
-    update_webapp(flowers2)
+        df_sub = flowers.iloc[new].copy()
+    replace_heatmap(df_sub)
 
 
-# Scatter plot selection
+# Scatter plot selection change
 sctr.data_source.selected.on_change('indices', selection_change)
-# Multiselection list
+# Multiselection list change
 mselect_options = [(grp, grp) for grp in food_grps.keys()]
 food_grp_mselect = MultiSelect(options=mselect_options)
 food_grp_mselect.size = 5
-food_grp_mselect.on_change('value', drop_select)
+food_grp_mselect.on_change('value', select_category)
 # Set up layouts and add to document
 lay = row(
-        create_heatmap(flowers),
-        column(widgetbox(food_grp_mselect), plot),
-        height=300, width=2000, sizing_mode='fixed')
+    create_heatmap(flowers),
+    column(widgetbox(food_grp_mselect), plot),
+    height=300, width=2000, sizing_mode='fixed')
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
