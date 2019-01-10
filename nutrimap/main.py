@@ -7,7 +7,7 @@ from bokeh.plotting import figure
 from bokeh.transform import transform
 from bokeh.models.widgets import MultiSelect
 from bokeh.layouts import widgetbox, column, row
-from bokeh.models import ColumnDataSource, LogColorMapper
+from bokeh.models import ColumnDataSource, LogColorMapper, Div
 from bokeh.palettes import Category10_10, Category20_20, YlOrBr9
 
 
@@ -160,7 +160,7 @@ def create_heatmap(df):
 
 def replace_heatmap(df):
     '''Replace the heatmap figure with one of the selected subset'''
-    lay.children[0] = create_heatmap(df)
+    lay.children[2].children[0] = create_heatmap(df)
 
 
 def select_category(attr, old, new):
@@ -186,9 +186,13 @@ food_grp_mselect = MultiSelect(options=mselect_options)
 food_grp_mselect.size = 5
 food_grp_mselect.on_change('value', select_category)
 # Set up layouts and add to document
-lay = row(
-    create_heatmap(flowers),
-    column(widgetbox(food_grp_mselect), plot),
-    height=300, width=2000, sizing_mode='fixed')
+desc_top = Div(text='<style>p{margin-top: -15px;} .head {padding-right: -420px; margin-right: -420px;}</style><h1>Nutrimap</h1><p class="head">The goal of this web app is to facilitate comparisons of nutrient content in food and to find nutrionally similar food items. This app is still under active development and more food items are to be added.</p>')
+desc_left = Div(text='<style>.left {padding-left: 0px; margin-left: 0px; padding-bottom: 2px;}</style><h2 class="left">Nutrient visualization</h2><p class="left">The colors are normalized to RDI and capped at 100%.<br></p>')
+desc_right = Div(text='<style>.right {padding-left: 100px;, padding-right: -100px; margin-right: -100px;}</style><h2 class="right">Selection tools</h2><p class="right">Pick a group to visualize or select data points in the food similarity scatter plot.<br></p>')
+lay = column(
+    desc_top,
+    row(desc_left, desc_right),
+    row(create_heatmap(flowers), column(widgetbox(food_grp_mselect), plot),
+        sizing_mode='fixed'))
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
