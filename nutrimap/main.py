@@ -86,7 +86,16 @@ food_grps = {
              'Hazelnuts or filberts', 'Hickorynuts,dried',
              'Macadamia nuts,raw', 'Nuts,pilinuts,dried',
              'Nuts,pine nuts,dried', 'Pistachio nuts,raw', 'Walnuts,english',
-             'Coconut meat,dried (desiccated),crmd', 'Peanuts,all types,raw']
+             'Coconut meat,dried (desiccated),crmd', 'Peanuts,all types,raw'],
+    'fruits': ["Apples,raw,with skin",
+               'Pineapple,raw', 'Plums,raw', 'Pears,raw',
+               'Apricots,raw', 'Avocados,raw,all comm var',
+               'Blackberries, frozen, unsweetened', 'Blueberries,raw',
+               'Cranberries,raw', 'Raspberries,raw', 'Clementines,raw',
+               'Strawberries,raw', 'Dates,medjool', 'Plantains,raw',
+               'Pomegranates,raw', 'Bananas,raw',
+               'Kiwifruit,green,raw', 'Figs,dried,uncooked', 'Oranges,raw,all comm var',
+               'Apricots,dried,sulfured,unckd', 'Olives,ripe,cnd (small-extra lrg)']
     }
 
 coi_min = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
