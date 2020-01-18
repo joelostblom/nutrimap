@@ -103,6 +103,12 @@ plot = figure(plot_height=400, plot_width=400, title='Food similarity',
               tools="box_select,pan,reset,save,wheel_zoom,tap",
               active_drag='box_select', tooltips=[('', '@Shrt_Desc')],)
 plot.toolbar.autohide = True
+plot.xgrid.grid_line_alpha = 0
+plot.ygrid.grid_line_alpha = 0
+plot.outline_line_color = None
+plot.toolbar.logo = None
+plot.toolbar_location = 'above'
+
 # Standardize for PCA
 flow_num = flowers.select_dtypes('number')
 flow_num_stndr = (flow_num - flow_num.mean()) / flow_num.std()
@@ -120,8 +126,19 @@ cat_cmap = {cat: cmap[num] for num, cat in
 flowers['colors'] = [cat_cmap[cat] for cat in flowers['Category']]
 food_cds1 = ColumnDataSource(flowers)
 sctr = plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
+                   size=7, fill_alpha=0.7, muted_alpha=0.1,
+                   muted_color='colors', source=food_cds1)
+
+legend_plot = figure(plot_height=200, plot_width=140, y_range=(1111, 2222))
+legend_plot.toolbar.autohide = True
+legend_plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
                    size=7, fill_alpha=0.7, legend='Category', muted_alpha=0.1,
                    muted_color='colors', source=food_cds1)
+legend_plot.outline_line_color = None
+legend_plot.xgrid.grid_line_alpha = 0
+legend_plot.ygrid.grid_line_alpha = 0
+legend_plot.axis.visible = False
+legend_plot.legend.border_line_alpha = 0
 
 
 def create_heatmap(df):
@@ -192,7 +209,7 @@ desc_right = Div(text='<style>.right {padding-left: 100px;, padding-right: -100p
 lay = column(
     desc_top,
     row(desc_left, desc_right),
-    row(create_heatmap(flowers), column(widgetbox(food_grp_mselect), plot),
+    row(create_heatmap(flowers), column(widgetbox(food_grp_mselect), row(plot, legend_plot)),
         sizing_mode='fixed'))
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
