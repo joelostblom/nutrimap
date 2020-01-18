@@ -11,16 +11,6 @@ from bokeh.models import ColumnDataSource, LogColorMapper, Div
 from bokeh.palettes import Category10_10, Category20_20
 
 
-coi = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
-       'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)',
-       'Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)']
-minerals = ['Calcium_(mg)', 'Iron_(mg)', 'Magnesium_(mg)', 'Phosphorus_(mg)',
-            'Potassium_(mg)', 'Sodium_(mg)', 'Zinc_(mg)', 'Copper_mg)',
-            'Manganese_(mg)', 'Selenium_(µg)']
-vitamins = ['Thiamin_(mg)', 'Riboflavin_(mg)', 'Niacin_(mg)', 'Vit_B6_(mg)',
-            'Vit_A_IU', 'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
-# 'Panto_Acid_mg)', 'Folate_DFE_(µg)',
-# vit a from chronometer, not canada
 # Exported from mpl via "', '".join([colors.rgb2hex(x) for x in cm.YlOrBr(range(256))])
 YlOrBr = [
     '#ffffe5', '#ffffe4', '#fffee2', '#fffee1', '#fffee0', '#fffedf', '#fffddd',
@@ -98,6 +88,19 @@ food_grps = {
              'Nuts,pine nuts,dried', 'Pistachio nuts,raw', 'Walnuts,english',
              'Coconut meat,dried (desiccated),crmd', 'Peanuts,all types,raw']
     }
+
+coi_min = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
+           'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)']
+coi_ext = ['Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)']
+minerals = ['Zinc_(mg)', 'Magnesium_(mg)', 'Calcium_(mg)', 'Iron_(mg)',
+            'Potassium_(mg)', 'Sodium_(mg)', 'Selenium_(µg)',
+            'Phosphorus_(mg)', 'Copper_mg)', 'Manganese_(mg)']
+vitamins = ['Thiamin_(mg)', 'Riboflavin_(mg)', 'Niacin_(mg)', 'Vit_B6_(mg)',
+            'Vit_A_IU', 'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
+coi = coi_min + coi_ext + minerals[:-3] + vitamins
+# 'Panto_Acid_mg)', 'Folate_DFE_(µg)',
+# vit a from chronometer, not canada
+
 foods_all = read_csv('nutrimap/data/ABBREV.csv', usecols=coi, index_col=0)
 foods_all.index = foods_all.index.str.capitalize()
 foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
