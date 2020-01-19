@@ -214,13 +214,21 @@ def create_heatmap(df):
     # Cap colors at 100% RDI
     mapper = LogColorMapper(palette=YlOrBr, low=0, high=100)
     food_cds = ColumnDataSource(df_mlt)
-    tools = ['box_select', 'reset']
-    heatmap = figure(tools=tools, plot_height=plot_height, plot_width=plot_width,
+    html_tooltips = """
+        <div>
+            <span style="font-size: 13px; color: #38b0e4;">@Shrt_Desc</span>
+        </div>
+        <div>
+            <span style="font-size: 12px;">@variable</span>
+            <span style="font-size: 14px; font-weight: bold;"> @value{0.0}%</span>
+        </div>
+    """
+    heatmap = figure(plot_height=plot_height, plot_width=plot_width,
                      sizing_mode='fixed', x_axis_location="above",
                      y_axis_location='right',
                      x_range=list(df_mlt['variable'].unique()),
                      y_range=list(df_mlt['Shrt_Desc'].unique()),
-                     tooltips=[('', '@variable @value{0.0} %')])
+                     tooltips=html_tooltips)
     heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
                  source=food_cds, fill_color=transform('value', mapper),
                  line_color=None)
@@ -229,7 +237,7 @@ def create_heatmap(df):
     heatmap.grid.grid_line_color = None
     heatmap.axis.axis_line_color = None
     heatmap.axis.major_tick_line_color = None
-    heatmap.toolbar.autohide = True
+    heatmap.toolbar_location = None
     return heatmap
 
 
