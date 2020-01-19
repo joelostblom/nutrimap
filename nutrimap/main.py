@@ -125,7 +125,7 @@ flowers.loc[flowers['Shrt_Desc'] == 'Semolina,unenriched',
             'Sugar_Tot_(g)'] = 0.7
 flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Sugar_Tot_(g)'] = 1
 flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Fiber_TD_(g)'] = 14.6
-na_indices = flowers.isnull().any(axis=1).nonzero()
+na_indices = flowers.isnull().any(axis=1).to_numpy().nonzero()
 na_foods = flowers.iloc[na_indices]['Shrt_Desc'].values
 flowers = flowers.dropna()
 
