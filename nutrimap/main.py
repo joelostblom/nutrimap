@@ -243,7 +243,8 @@ def create_heatmap(df):
 
 def replace_heatmap(df):
     '''Replace the heatmap figure with one of the selected subset'''
-    lay.children[2].children[0] = create_heatmap(df)
+    # lay.children[2].children[0] = create_heatmap(df)
+    lay.children[1].children[0].children[1] = create_heatmap(df)
 
 
 def select_category(attr, old, new):
@@ -300,13 +301,31 @@ hm_cols_mselect.size = 4
 hm_cols_mselect.on_change('value', select_hm_cols)
 
 # Set up layouts and add to document
-desc_top = Div(text='<style>p{margin-top: -15px;} .head {padding-right: -420px; margin-right: -420px;}</style><h1>Nutrimap</h1><p class="head">The goal of this web app is to facilitate comparisons of nutrient content in food and to find nutrionally similar food items. This app is still under active development and more food items are to be added.</p>')
-desc_left = Div(text='<style>.left {padding-left: 0px; margin-left: 0px; padding-bottom: 2px;}</style><h2 class="left">Nutrient visualization</h2><p class="left">The colors are normalized to RDI and capped at 100%.<br></p>')
-desc_right = Div(text='<style>.right {padding-left: 100px;, padding-right: -100px; margin-right: -100px;}</style><h2 class="right">Selection tools</h2><p class="right">Pick a group to visualize or select data points in the food similarity scatter plot.<br></p>')
+# Note that I have commented out the styling for now, seems not to be needed
+# This could be made prettier and maybe multiline instead of soft wrap
+desc_top = Div(text=
+'''<!--<style>p{margin-top: -15px;} .head {padding-right: -420px; margin-right: -420px;}</style>-->
+<h1>Nutrimap</h1><p class="head">
+The goal of this web app is to facilitate comparisons of nutrient content in food and to find nutrionally similar food items. The app is still under active development and more food items are to be added.</p>''')
+desc_left = Div(text=
+'''<!--<style>.left {padding-left: 0px; margin-left: 0px; padding-bottom: 2px;}</style>-->
+<h2 class="left">Nutrient visualization</h2><p class="left">
+The nutrients for 100g of each food are shown. The colors are normalized to RDI and capped at 100%.<br></p>''')
+desc_right = Div(text=
+'''<!--<style>.right {padding-left: 100px;, padding-right: -100px; margin-right: -100px;}</style>-->
+<h2 class="right">Selection tools</h2><p class="right">
+Pick a subset of nutrients and food groups to visualize using the lists (ctrl to select multiple) or select individual food items in the food similarity scatter plot by either draggin with the mouse or clicing to select (shift to select multiple).<br></p>''')
 lay = column(
     desc_top,
-    row(desc_left, desc_right),
-    row(create_heatmap(flowers), column(widgetbox(food_grp_mselect), row(plot, legend_plot)),
-        sizing_mode='fixed'))
+    # row(desc_left, desc_right),
+    row(column(desc_left,
+               create_heatmap(flowers),
+               width=950),
+        column(desc_right,
+               widgetbox(hm_cols_mselect),
+               widgetbox(food_grp_mselect),
+               row(plot, legend_plot)),
+        sizing_mode='fixed'),
+    width=800)
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
