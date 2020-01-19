@@ -16,7 +16,7 @@ Amount,MatchedNutrient,Nutrient,Unit
 14.0,Iron_(mg),Iron,mg
 9.0,Zinc_(mg),Zinc,mg
 50.0,Selenium_(µg),Selenium,µg
-2.0,Copper_mg),Copper,mg
+2.0,Copper_(mg),Copper,mg
 2.0,Manganese_(mg),Manganese,mg
 2000.0,Energ_Kcal,Energy,kcal
 56.0,Protein_(g),Protein,g

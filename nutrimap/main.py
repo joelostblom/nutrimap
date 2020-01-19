@@ -104,7 +104,7 @@ nutrients = dict(
     macros_details=['Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)'],
     minerals=['Zinc_(mg)', 'Magnesium_(mg)', 'Calcium_(mg)', 'Iron_(mg)',
               'Potassium_(mg)', 'Sodium_(mg)', 'Selenium_(µg)',
-              'Phosphorus_(mg)', 'Copper_mg)', 'Manganese_(mg)'],
+              'Phosphorus_(mg)', 'Copper_(mg)', 'Manganese_(mg)'],
     vitamins=['Thiamin_(mg)', 'Riboflavin_(mg)', 'Niacin_(mg)', 'Vit_B6_(mg)',
               'Vit_A_IU', 'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
 )
