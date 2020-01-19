@@ -247,13 +247,38 @@ def replace_heatmap(df):
 
 
 def select_category(attr, old, new):
-    '''Subset foods on the selected category'''
-    df_sub = flowers.loc[flowers['Category'].isin(new)]
-    replace_heatmap(df_sub)
+    '''Subset foods on the selected categories'''
+    # Use subgroups of columns from a previous selection
+    global df_sub
+    try:
+        cols = df_sub.columns
+    except NameError:
+        cols = flowers.columns
+    df_sub = flowers.loc[flowers['Category'].isin(new)][cols]
+    # Pass a copy so that the column name modifications in replace_heatmap are
+    # not saved in the global variable df_sub
+    replace_heatmap(df_sub.copy())
 
 
-def selection_change(attr, old, new):
-    '''Subset foods on the selected data points'''
+def select_hm_cols(attr, old, new):
+    '''Select heatmap columns'''
+    new_nutrients = ['Shrt_Desc']  # Always include the name column
+    for key in new:
+        new_nutrients.extend(nutrients[key])
+    # Use subgroups of rows from a previous selection
+    global df_sub
+    try:
+        rows = df_sub.index
+    except NameError:
+        rows = flowers.index
+    df_sub = flowers.loc[rows, new_nutrients]
+    # Pass a copy so that the column name modifications in replace_heatmap are
+    # not saved in the global variable df_sub
+    replace_heatmap(df_sub.copy())
+
+
+def select_scatter_points(attr, old, new):
+    '''Subset foods on the data points selected in the scatter plot'''
     if len(new) == 0:
         df_sub = flowers.copy()
     else:
@@ -262,12 +287,18 @@ def selection_change(attr, old, new):
 
 
 # Scatter plot selection change
-sctr.data_source.selected.on_change('indices', selection_change)
-# Multiselection list change
-mselect_options = [(grp, grp) for grp in food_grps.keys()]
-food_grp_mselect = MultiSelect(options=mselect_options)
-food_grp_mselect.size = 5
+sctr.data_source.selected.on_change('indices', select_scatter_points)
+# Multiselection list for food groups
+food_grp_options = [(grp, grp) for grp in food_grps.keys()]
+food_grp_mselect = MultiSelect(options=food_grp_options)
+food_grp_mselect.size = 6
 food_grp_mselect.on_change('value', select_category)
+# Multiselection list for heatmap columns
+hm_cols_options = [(grp, grp) for grp in nutrients.keys()]
+hm_cols_mselect = MultiSelect(options=hm_cols_options)
+hm_cols_mselect.size = 4
+hm_cols_mselect.on_change('value', select_hm_cols)
+
 # Set up layouts and add to document
 desc_top = Div(text='<style>p{margin-top: -15px;} .head {padding-right: -420px; margin-right: -420px;}</style><h1>Nutrimap</h1><p class="head">The goal of this web app is to facilitate comparisons of nutrient content in food and to find nutrionally similar food items. This app is still under active development and more food items are to be added.</p>')
 desc_left = Div(text='<style>.left {padding-left: 0px; margin-left: 0px; padding-bottom: 2px;}</style><h2 class="left">Nutrient visualization</h2><p class="left">The colors are normalized to RDI and capped at 100%.<br></p>')
