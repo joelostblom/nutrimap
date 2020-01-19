@@ -210,7 +210,7 @@ def create_heatmap(df):
     else:
         df_mlt = df.melt(id_vars='Shrt_Desc')
     plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
-    plot_width = len(coi) * 30
+    plot_width = len(df.columns) * 30 + 50
     # Cap colors at 100% RDI
     mapper = LogColorMapper(palette=YlOrBr, low=0, high=100)
     food_cds = ColumnDataSource(df_mlt)
