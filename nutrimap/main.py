@@ -98,17 +98,19 @@ food_grps = {
                'Apricots,dried,sulfured,unckd', 'Olives,ripe,cnd (small-extra lrg)']
     }
 
-coi_min = ['Shrt_Desc', 'Energ_Kcal', 'Protein_(g)',
-           'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)']
-coi_ext = ['Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)']
-minerals = ['Zinc_(mg)', 'Magnesium_(mg)', 'Calcium_(mg)', 'Iron_(mg)',
-            'Potassium_(mg)', 'Sodium_(mg)', 'Selenium_(µg)',
-            'Phosphorus_(mg)', 'Copper_mg)', 'Manganese_(mg)']
-vitamins = ['Thiamin_(mg)', 'Riboflavin_(mg)', 'Niacin_(mg)', 'Vit_B6_(mg)',
-            'Vit_A_IU', 'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
-coi = coi_min + coi_ext + minerals[:-3] + vitamins
+nutrients = dict(
+    macros=['Energ_Kcal', 'Protein_(g)',
+            'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)'],
+    macros_details=['Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)'],
+    minerals=['Zinc_(mg)', 'Magnesium_(mg)', 'Calcium_(mg)', 'Iron_(mg)',
+              'Potassium_(mg)', 'Sodium_(mg)', 'Selenium_(µg)',
+              'Phosphorus_(mg)', 'Copper_mg)', 'Manganese_(mg)'],
+    vitamins=['Thiamin_(mg)', 'Riboflavin_(mg)', 'Niacin_(mg)', 'Vit_B6_(mg)',
+              'Vit_A_IU', 'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
+)
 # 'Panto_Acid_mg)', 'Folate_DFE_(µg)',
 # vit a from chronometer, not canada
+coi = ['Shrt_Desc'] + [x for sub in nutrients.values() for x in sub]
 
 foods_all = read_csv('nutrimap/data/ABBREV.csv', usecols=coi, index_col=0)
 foods_all.index = foods_all.index.str.capitalize()
