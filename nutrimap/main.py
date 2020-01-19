@@ -198,7 +198,8 @@ legend_plot.legend.border_line_alpha = 0
 
 def create_heatmap(df):
     '''Create a heatmap ordered by food similarity'''
-    df = df.drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
+    if 'tSNE_x' in df.columns:  # Only needed the first time
+        df = df.drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
     df.columns = df.columns.str.rpartition('_').get_level_values(0)
     df = df.rename(columns={'Shrt': 'Shrt_Desc'})
     if df.shape[0] > 2:
