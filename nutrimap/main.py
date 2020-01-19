@@ -186,7 +186,7 @@ sctr = plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
 legend_plot = figure(plot_height=200, plot_width=140, y_range=(1111, 2222))
 legend_plot.toolbar.autohide = True
 legend_plot.circle('tSNE_x', 'tSNE_y', line_color=None, fill_color='colors',
-                   size=7, fill_alpha=0.7, legend='Category', muted_alpha=0.1,
+                   size=7, fill_alpha=0.7, legend_group='Category', muted_alpha=0.1,
                    muted_color='colors', source=food_cds1)
 legend_plot.outline_line_color = None
 legend_plot.xgrid.grid_line_alpha = 0
