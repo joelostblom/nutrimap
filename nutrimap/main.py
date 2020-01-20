@@ -216,8 +216,9 @@ plot.toolbar.logo = None
 plot.toolbar_location = 'above'
 
 # Standardize for PCA
-flow_num = flowers.select_dtypes('number')
-flow_num_stndr = (flow_num - flow_num.mean()) / flow_num.std()
+flow_num = flowers.fillna(0).select_dtypes('number')
+# flow_num_stndr = (flow_num - flow_num.mean()) / flow_num.std()
+flow_num_stndr = (flow_num - flow_num.min()) / (flow_num.max() - flow_num.min())
 pca_coords = PCA(n_components=2).fit_transform(flow_num_stndr)
 # tsne_coords = TSNE(n_components=2).fit_transform(flow_num)
 flowers['tSNE_x'], flowers['tSNE_y'] = pca_coords.T
