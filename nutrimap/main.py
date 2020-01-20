@@ -5,7 +5,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from bokeh.io import curdoc
 from bokeh.plotting import figure
 from bokeh.transform import transform
-from bokeh.models.widgets import MultiSelect
+from bokeh.models.widgets import MultiSelect, CheckboxGroup
 from bokeh.layouts import widgetbox, column, row
 from bokeh.models import ColumnDataSource, LogColorMapper, Div
 from bokeh.palettes import Category10_10, Category20_20
@@ -196,7 +196,7 @@ legend_plot.axis.visible = False
 legend_plot.legend.border_line_alpha = 0
 
 
-def create_heatmap(df):
+def create_heatmap(df, high_rdi):
     '''Create a heatmap ordered by food similarity'''
     if 'tSNE_x' in df.columns:  # Only needed the first time
         df = df.drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
@@ -212,7 +212,7 @@ def create_heatmap(df):
     plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
     plot_width = len(df.columns) * 30 + 50
     # Cap colors at 100% RDI
-    mapper = LogColorMapper(palette=YlOrBr, low=0, high=100)
+    mapper = LogColorMapper(palette=YlOrBr, low=0, high=high_rdi)
     food_cds = ColumnDataSource(df_mlt)
     html_tooltips = """
         <div>
@@ -241,10 +241,15 @@ def create_heatmap(df):
     return heatmap
 
 
-def replace_heatmap(df):
+def replace_heatmap(df=None, high_rdi=100):
     '''Replace the heatmap figure with one of the selected subset'''
+    if df is None:
+        try:
+            df = df_sub
+        except NameError:
+            df = flowers
     # lay.children[2].children[0] = create_heatmap(df)
-    lay.children[1].children[0].children[1] = create_heatmap(df)
+    lay.children[1].children[0].children[1] = create_heatmap(df, high_rdi)
 
 
 def select_category(attr, old, new):
@@ -287,6 +292,18 @@ def select_scatter_points(attr, old, new):
     replace_heatmap(df_sub)
 
 
+def rdi_normalization(attr, old, new):
+    if 0 in new:  # RDI norm
+        print('norm')
+    else:
+        print('no-norm')
+    if 1 in new:  # RDI cap
+        high_rdi = 100
+    else:
+        high_rdi = None
+    if 2 in new:  # Norm columns
+        pass
+    replace_heatmap(high_rdi=high_rdi)
 # Scatter plot selection change
 sctr.data_source.selected.on_change('indices', select_scatter_points)
 # Multiselection list for food groups
@@ -300,6 +317,10 @@ hm_cols_mselect = MultiSelect(options=hm_cols_options)
 hm_cols_mselect.size = 4
 hm_cols_mselect.on_change('value', select_hm_cols)
 
+checkboxes = CheckboxGroup(labels=['Normalize to RDI', 'Cap at 100% RDI'],
+                           active=[0, 1])
+
+checkboxes.on_change('active', rdi_normalization)
 # Set up layouts and add to document
 # Note that I have commented out the styling for now, seems not to be needed
 # This could be made prettier and maybe multiline instead of soft wrap
