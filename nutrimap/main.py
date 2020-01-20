@@ -214,7 +214,7 @@ def create_heatmap(df, high_rdi, sort_by):
     else:
         df_mlt = df.sort_values(sort_by).melt(id_vars='Shrt_Desc')
     plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
-    plot_width = len(df.columns) * 30 + 50
+    plot_width = len(df.columns) * 25 + 200
     # Cap colors at 100% RDI
     mapper = LogColorMapper(palette=YlOrBr, low=0, high=high_rdi)
     food_cds = ColumnDataSource(df_mlt)
@@ -229,13 +229,16 @@ def create_heatmap(df, high_rdi, sort_by):
     """
     heatmap = figure(plot_height=plot_height, plot_width=plot_width,
                      sizing_mode='fixed', x_axis_location="above",
-                     y_axis_location='right',
+                     y_axis_location='left',
                      x_range=list(df_mlt['variable'].unique()),
                      y_range=list(df_mlt['Shrt_Desc'].unique()),
                      tooltips=html_tooltips)
     heatmap.rect(x="variable", y="Shrt_Desc", width=1, height=1,
                  source=food_cds, fill_color=transform('value', mapper),
                  line_color=None)
+    heatmap.min_border_right = 100  # To fit the angled labels
+    heatmap.xaxis.major_label_text_font_size = '10pt'
+    heatmap.yaxis.major_label_text_font_size = '10pt'
     heatmap.xaxis.major_label_orientation = 0.8
     heatmap.axis.major_label_standoff = 0
     heatmap.grid.grid_line_color = None
@@ -253,7 +256,7 @@ def replace_heatmap(df=None, high_rdi=100, sort_by=None):
         except NameError:
             df = flowers
     # lay.children[2].children[0] = create_heatmap(df)
-    lay.children[1].children[0].children[1] = create_heatmap(df, high_rdi, sort_by)
+    lay.children[1].children[1].children[1] = create_heatmap(df, high_rdi, sort_by)
 
 
 def select_category(attr, old, new):
@@ -322,13 +325,13 @@ dd_sort.on_change('value', sort_by)
 sctr.data_source.selected.on_change('indices', select_scatter_points)
 # Multiselection list for food groups
 food_grp_options = [(grp, grp) for grp in food_grps.keys()]
-food_grp_mselect = MultiSelect(options=food_grp_options)
+food_grp_mselect = MultiSelect(options=food_grp_options, width=150)
 food_grp_mselect.size = 6
 food_grp_mselect.on_change('value', select_category)
 # Multiselection list for heatmap columns
 hm_cols_options = [(grp, grp) for grp in nutrients.keys()]
-hm_cols_mselect = MultiSelect(options=hm_cols_options)
-hm_cols_mselect.size = 4
+hm_cols_mselect = MultiSelect(options=hm_cols_options, width=150)
+hm_cols_mselect.size = 6
 hm_cols_mselect.on_change('value', select_hm_cols)
 
 checkboxes = CheckboxGroup(labels=['Normalize to RDI', 'Cap at 100% RDI'],
@@ -349,18 +352,18 @@ The nutrients for 100g of each food are shown. The colors are normalized to RDI 
 desc_right = Div(text=
 '''<!--<style>.right {padding-left: 100px;, padding-right: -100px; margin-right: -100px;}</style>-->
 <h2 class="right">Selection tools</h2><p class="right">
-Pick a subset of nutrients and food groups to visualize using the lists (ctrl to select multiple) or select individual food items in the food similarity scatter plot by either draggin with the mouse or clicing to select (shift to select multiple).<br></p>''')
+Pick a subset of nutrients and food groups to visualize using the lists (ctrl to select multiple) or select individual food items in the food similarity scatter plot by dragging with the mouse or clicing to select (shift to select multiple).<br></p>''')
+
 lay = column(
     desc_top,
-    # row(desc_left, desc_right),
-    row(column(desc_left,
-               create_heatmap(flowers),
-               width=950),
+    row(
         column(desc_right,
-               widgetbox(hm_cols_mselect),
-               widgetbox(food_grp_mselect),
+               widgetbox(row(hm_cols_mselect, food_grp_mselect, column(checkboxes, dd_sort)),
+                         width=550, background='#f0f0f0'),
                row(plot, legend_plot)),
-        sizing_mode='fixed'),
-    width=800)
+        column(desc_left,
+               create_heatmap(flowers, 100, None),
+               width=950),
+        )) 
 curdoc().add_root(lay)
 curdoc().title = "Sliders"
