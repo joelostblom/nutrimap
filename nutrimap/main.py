@@ -5,7 +5,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from bokeh.io import curdoc
 from bokeh.plotting import figure
 from bokeh.transform import transform
-from bokeh.models.widgets import MultiSelect, CheckboxGroup
+from bokeh.models.widgets import MultiSelect, CheckboxGroup, Dropdown
 from bokeh.layouts import widgetbox, column, row
 from bokeh.models import ColumnDataSource, LogColorMapper, Div
 from bokeh.palettes import Category10_10, Category20_20
@@ -196,19 +196,23 @@ legend_plot.axis.visible = False
 legend_plot.legend.border_line_alpha = 0
 
 
-def create_heatmap(df, high_rdi):
+def create_heatmap(df, high_rdi, sort_by):
     '''Create a heatmap ordered by food similarity'''
     if 'tSNE_x' in df.columns:  # Only needed the first time
         df = df.drop(columns=['tSNE_x', 'tSNE_y', 'colors', 'Category'])
-    df.columns = df.columns.str.rpartition('_').get_level_values(0)
-    df = df.rename(columns={'Shrt': 'Shrt_Desc'})
-    if df.shape[0] > 2:
-        Z = linkage(df.select_dtypes('number').dropna(), 'single')
-        dn = dendrogram(Z, no_plot=True)
-        df_srtd = df.iloc[dn['leaves']]
-        df_mlt = df_srtd.melt(id_vars='Shrt_Desc')
+    # df.columns = df.columns.str.rpartition('_').get_level_values(0)
+    # df = df.rename(columns={'Shrt': 'Shrt_Desc'})
+    if sort_by is None:
+        if df.shape[0] > 2:
+            Z = linkage(df.select_dtypes('number').fillna(0), 'single',
+                        optimal_ordering=True)
+            dn = dendrogram(Z, no_plot=True)
+            df_srtd = df.iloc[dn['leaves']]
+            df_mlt = df_srtd.melt(id_vars='Shrt_Desc')
+        else:
+            df_mlt = df.melt(id_vars='Shrt_Desc')
     else:
-        df_mlt = df.melt(id_vars='Shrt_Desc')
+        df_mlt = df.sort_values(sort_by).melt(id_vars='Shrt_Desc')
     plot_height = 100 + 20 * df['Shrt_Desc'].nunique()
     plot_width = len(df.columns) * 30 + 50
     # Cap colors at 100% RDI
@@ -241,7 +245,7 @@ def create_heatmap(df, high_rdi):
     return heatmap
 
 
-def replace_heatmap(df=None, high_rdi=100):
+def replace_heatmap(df=None, high_rdi=100, sort_by=None):
     '''Replace the heatmap figure with one of the selected subset'''
     if df is None:
         try:
@@ -249,7 +253,7 @@ def replace_heatmap(df=None, high_rdi=100):
         except NameError:
             df = flowers
     # lay.children[2].children[0] = create_heatmap(df)
-    lay.children[1].children[0].children[1] = create_heatmap(df, high_rdi)
+    lay.children[1].children[0].children[1] = create_heatmap(df, high_rdi, sort_by)
 
 
 def select_category(attr, old, new):
@@ -304,6 +308,16 @@ def rdi_normalization(attr, old, new):
     if 2 in new:  # Norm columns
         pass
     replace_heatmap(high_rdi=high_rdi)
+
+
+def sort_by(attr, old, new):
+    print(old)
+    print(new)
+    replace_heatmap(sort_by=new)
+
+
+dd_sort = Dropdown(label='Sort by', menu=list(zip(coi, coi)), width=150)
+dd_sort.on_change('value', sort_by)
 # Scatter plot selection change
 sctr.data_source.selected.on_change('indices', select_scatter_points)
 # Multiselection list for food groups
