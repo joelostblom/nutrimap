@@ -1,0 +1,33 @@
+Amount,MatchedNutrient,Nutrient,Unit
+1000.0,Vitamin A,Vitamin A,RE
+5.0,Vitamin D (D2 + D3),Vitamin D,µg
+10.0,Vitamin E (alpha-tocopherol),Vitamin E,mg
+60.0,Vitamin C,Vitamin C,mg
+1.3,Vitamin B1 (Thiamin),"Thiamin, Thiamine or Vitamin B1",mg
+1.6,Vitamin B2 (Riboflavin),Riboflavin or Vitamin B2,mg
+23.0,Vitamin B3 (Niacin),Niacin,NE
+1.8,Vitamin B6,Vitamin B6,mg
+220.0,Vitamin B9 (Folate),Folacin or Folate,µg
+2.0,Vitamin B12,Vitamin B12,µg
+80.0,Vitamin K (phylloquinone),Vitamin K,µg
+1100.0,Calcium,Calcium,mg
+1100.0,Phosphorus,Phosphorus,mg
+250.0,Magnesium,Magnesium,mg
+14.0,Iron,Iron,mg
+9.0,Zinc,Zinc,mg
+50.0,Selenium,Selenium,µg
+2.0,Copper,Copper,mg
+2.0,Manganese,Manganese,mg
+2000.0,Energy,Energy,kcal
+56.0,Protein,Protein,g
+200.0,Carbs,Carbs,g
+65.0,Fat,Fat,g
+20.0,Saturated fat,SatFat,g
+22.0,Monounsaturated fat,MonoFat,g
+22.0,Polyunsaturated fat,PolyFat,g
+22.0,Sugars,Sugar,g
+50.0,Fiber,Fiber,g
+4700.0,Potassium,Potassium,mg
+2300.0,Sodium,Sodium,mg
+3000.0,Vit_A_IU,Vitamine A,iu
+120.0,Vit_K_(µg),Vitamine K,ug

@@ -52,86 +52,137 @@ YlOrBr = [
     '#6b2606', '#692606', '#682506', '#662506']
 
 food_grps = {
-    'grains': ['Quinoa,unckd', 'Oats', 'Barley,hulled', 'Barley,pearled,raw',
-               'Buckwheat', 'Rice,brown,long-grain,raw', 'Wild rice,raw',
-               'Millet,raw', 'Bulgur,dry', 'Spelt,unckd', 'Wheat,durum',
-               'Wheat,soft white', 'Wheat,hard red winter', 'Sorghum grain',
-               'Wheat,kamut khorasan,unckd', 'Amaranth grain,unckd',
-               'Rice,white,long-grain,reg,raw,unenr', 'Semolina,unenriched',
-               'Triticale', 'Teff,unckd', 'Rye grain'],
-    'vegetables': ['Brussels sprouts,raw', 'Beets,raw', 'Broccoli,raw',
-                   'Cauliflower,raw', 'Eggplant,raw', ],
-    'greens': ['Kale,raw', 'Spinach,raw', 'Lettuce,cos or romaine,raw',
-               'Chard,swiss,raw', 'Arugula,raw', 'Collards,raw',
-               'Lettuce,iceberg (incl crisphead types),raw', 'Beet greens,raw',
-               'Mustard greens,raw', 'Cabbage,chinese (pak-choi),raw',
-               'Cabbage,raw', ],
-    'legumes': ['Beans,black turtle,mature seeds,raw', 'Lentils,raw',
-                'Lentils,pink or red,raw', 'Beans,snap,green,raw',
-                'Soybeans,green,raw', 'Beans,pinto,mature seeds,sprouted,raw',
-                'Beans,snap,yellow,raw', 'Beans,adzuki,mature seeds,raw',
-                'Beans,black,mature seeds,raw',
-                'Beans,black turtle,mature seeds,raw',
-                'Beans,cranberry (roman),mature seeds,raw',
-                'Beans,french,mature seeds,raw', 'Beans,navy,mature seeds,raw',
-                'Beans,kidney,all types,mature seeds,raw',
-                'Beans,pink,mature seeds,raw', 'Beans,pinto,mature seeds,raw',
-                'Beans,sml white,mature seeds,raw',
-                'Beans,white,mature seeds,raw', 'Soybeans,mature seeds,raw',
-                'Broadbeans (fava beans),mature seeds,raw', 'Peas,green,raw',
-                'Chickpeas (garbanzo bns,bengal gm),mature seeds,raw',
-                'Peas,grn,split,mature seeds,raw'],
-    'nuts': ['Beechnuts,dried', 'Brazilnuts,dried,unblanched',
-             'Butternuts,dried', 'Nuts,cashew nuts,raw',
-             'Hazelnuts or filberts', 'Hickorynuts,dried',
-             'Macadamia nuts,raw', 'Nuts,pilinuts,dried',
-             'Nuts,pine nuts,dried', 'Pistachio nuts,raw', 'Walnuts,english',
-             'Coconut meat,dried (desiccated),crmd', 'Peanuts,all types,raw'],
-    'fruits': ["Apples,raw,with skin",
-               'Pineapple,raw', 'Plums,raw', 'Pears,raw',
-               'Apricots,raw', 'Avocados,raw,all comm var',
-               'Blackberries, frozen, unsweetened', 'Blueberries,raw',
-               'Cranberries,raw', 'Raspberries,raw', 'Clementines,raw',
-               'Strawberries,raw', 'Dates,medjool', 'Plantains,raw',
-               'Pomegranates,raw', 'Bananas,raw',
-               'Kiwifruit,green,raw', 'Figs,dried,uncooked', 'Oranges,raw,all comm var',
-               'Apricots,dried,sulfured,unckd', 'Olives,ripe,cnd (small-extra lrg)']
+    'grains': ['Quinoa, uncooked', "Oats", 'Barley, hulled', 'Barley, pearled, raw',
+               'Buckwheat', "Rice, brown, long-grain, raw", 'Wild rice, raw',
+               'Millet, raw', 'Bulgur, dry', 'Spelt, uncooked', 'Wheat, durum',
+               'Wheat, soft white', 'Wheat, hard red winter', 'Sorghum grain',
+               'Wheat, kamut khorasan, uncooked', 'Amaranth grain, uncooked',
+               'Rice, white, long-grain, regular, raw, unenriched', 'Semolina, unenriched',
+               'Triticale', 'Teff, uncooked', 'Rye grain'],
+    'vegetables': ['Brussels sprouts, raw', 'Beets, raw', 'Broccoli, raw',
+                   'Cauliflower, raw', 'Eggplant, raw', ],
+    'greens': ['Kale, raw', 'Spinach, raw', 'Lettuce, cos or romaine, raw',
+               'Chard, swiss, raw', 'Arugula, raw', 'Collards, raw',
+               'Lettuce, iceberg (includes crisphead types), raw', 'Beet greens, raw',
+               'Mustard greens, raw', 'Cabbage, chinese (pak-choi), raw',
+               'Cabbage, raw', ],
+    'legumes': ['Beans, black turtle, mature seeds, raw', 'Lentils, raw',
+                'Lentils, pink or red, raw', 'Beans, snap, green, raw',
+                'Soybeans, green, raw', 'Beans, pinto, mature seeds, sprouted, raw',
+                'Beans, snap, yellow, raw', 'Beans, adzuki, mature seeds, raw',
+                'Beans, black, mature seeds, raw',
+                'Beans, black turtle, mature seeds, raw',
+                'Beans, cranberry (roman), mature seeds, raw',
+                'Beans, french, mature seeds, raw', 'Beans, navy, mature seeds, raw',
+                'Beans, kidney, all types, mature seeds, raw',
+                'Beans, pink, mature seeds, raw', 'Beans, pinto, mature seeds, raw',
+                'Beans, small white, mature seeds, raw',
+                'Beans, white, mature seeds, raw', 'Soybeans, mature seeds, raw',
+                'Broadbeans (fava beans), mature seeds, raw', 'Peas, green, raw',
+                'Chickpeas (garbanzo beans, bengal gram), mature seeds, raw',
+                'Peas, green, split, mature seeds, raw'],
+    'nuts': [f'Nuts, {x.lower()}' for x in ['Beechnuts, dried', 'Brazilnuts, dried, unblanched',
+             'Butternuts, dried', 'Cashew nuts, raw',
+             'Hazelnuts or filberts', 'Hickorynuts, dried',
+             'Macadamia nuts, raw', 'Pilinuts, dried',
+             'Pine nuts, dried', 'Pistachio nuts, raw', 'Walnuts, english',
+             'Coconut meat, dried (desiccated), not sweetened']] + ['Peanuts, all types, raw'],
+    'fruits': ["Apples, raw, with skin",
+               'Pineapple, raw, all varieties', 'Plums, raw', 'Pears, raw',
+               'Apricots, raw', 'Avocados, raw, all commercial varieties',
+               'Blackberries, frozen, unsweetened', 'Blueberries, raw',
+               'Cranberries, raw', 'Raspberries, raw', 'Clementines, raw',
+               'Strawberries, raw', 'Dates, medjool', 'Plantains, green, raw',
+               'Pomegranates, raw', 'Bananas, raw', 'Plantains, yellow, raw',
+               'Kiwifruit, green, raw', 'Figs, dried, uncooked', 'Oranges, raw, all commercial varieties',
+               'Apricots, dried, sulfured, uncooked', 'Olives, ripe, canned (small-extra large)']
     }
 
 nutrients = dict(
-    macros=['Energ_Kcal', 'Protein_(g)',
-            'Lipid_Tot_(g)', 'Carbohydrt_(g)', 'Fiber_TD_(g)'],
-    macros_details=['Sugar_Tot_(g)', 'FA_Sat_(g)', 'FA_Mono_(g)', 'FA_Poly_(g)'],
-    minerals=['Zinc_(mg)', 'Magnesium_(mg)', 'Calcium_(mg)', 'Iron_(mg)',
-              'Potassium_(mg)', 'Sodium_(mg)', 'Selenium_(µg)',
-              'Phosphorus_(mg)', 'Copper_(mg)', 'Manganese_(mg)'],
-    vitamins=['Thiamin_(mg)', 'Riboflavin_(mg)', 'Niacin_(mg)', 'Vit_B6_(mg)',
-              'Vit_A_IU', 'Vit_C_(mg)', 'Vit_E_(mg)', 'Vit_K_(µg)']
+macros = [
+ 'Energy',
+ 'Carbs',
+ 'Fat',
+ 'Protein',
+ 'Fiber',
+],
+
+macros_details =  [
+ 'Sugars',
+ 'Monounsaturated fat',
+ 'Polyunsaturated fat',
+ 'Saturated fat',
+ # 'Cholesterol',
+],
+
+minerals = [
+ 'Calcium',
+ 'Copper',
+ 'Iron',
+ 'Magnesium',
+ 'Manganese',
+ 'Phosphorus',
+ 'Potassium',
+ 'Selenium',
+ 'Sodium',
+ 'Zinc'
+],
+
+vitamins = [
+ 'Vitamin B1 (Thiamin)',
+ 'Vitamin B2 (Riboflavin)',
+ 'Vitamin B3 (Niacin)',
+ # 'Vitamin B4 (Panthothenic acid)',
+ 'Vitamin B6',
+ 'Vitamin B9 (Folate)',
+ # 'Vitamin B12',
+ # 'Vitamin A, IU',
+ 'Vitamin A',
+ 'Vitamin C',
+ # 'Vitamin D (D2 + D3)',
+ # 'Vitamin D (D2 + D3), International Units',
+ 'Vitamin E (alpha-tocopherol)',
+ 'Vitamin K (phylloquinone)',
+],
+
+# caretonoids = [
+#  'Lycopene',
+#  'Lutein + zeaxanthin',
+#  'Carotene, alpha',
+#  'Carotene, beta',
+#  'Retinol',
+#  'Cryptoxanthin, beta',
+# ],
 )
 # 'Panto_Acid_mg)', 'Folate_DFE_(µg)',
 # vit a from chronometer, not canada
 coi = ['Shrt_Desc'] + [x for sub in nutrients.values() for x in sub]
 
-foods_all = read_csv('nutrimap/data/ABBREV.csv', usecols=coi, index_col=0)
-foods_all.index = foods_all.index.str.capitalize()
-foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
-flowers = foods.reset_index().copy()
-flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Sugar_Tot_(g)'] = 1.1
-flowers.loc[flowers['Shrt_Desc'] == 'Quinoa,unckd', 'Sugar_Tot_(g)'] = 6.1
-flowers.loc[flowers['Shrt_Desc'] == 'Buckwheat', 'Sugar_Tot_(g)'] = 1.9
-flowers.loc[flowers['Shrt_Desc'] == 'Millet,raw', 'Sugar_Tot_(g)'] = 1.5
-# used entry for semolina flour as th evalues were very similar
-flowers.loc[flowers['Shrt_Desc'] == 'Semolina,unenriched',
-            'Sugar_Tot_(g)'] = 0.7
-flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Sugar_Tot_(g)'] = 1
-flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Fiber_TD_(g)'] = 14.6
-flowers.loc[flowers['Shrt_Desc'] == 'Kale,raw', 'Copper_(mg)'] = 0.0533
+foods_all = read_csv('nutrimap/data/sr-dec2019.csv', usecols=coi, index_col=0)
+# foods_all.index = foods_all.index.str.capitalize()
+# food_names = [fn.replace(',', ', ') for fn_list in food_grps.values() for fn in fn_list]
+# foods_sub = foods_piv.loc[food_names].copy()
+# foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
+flowers = foods_all.reset_index().copy()
+flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Sugars'] = 1.1
+flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Selenium'] = 28.9
+flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Vitamin E (alpha-tocopherol)'] = 0.42
+flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Vitamin K (phylloquinone)'] = 2
+flowers.loc[flowers['Shrt_Desc'] == 'Quinoa, uncooked', 'Sugars'] = 6.1
+flowers.loc[flowers['Shrt_Desc'] == 'Buckwheat', 'Sugars'] = 1.9
+flowers.loc[flowers['Shrt_Desc'] == 'Millet,raw', 'Sugars'] = 1.5
+# # used entry for semolina flour as th evalues were very similar
+flowers.loc[flowers['Shrt_Desc'] == 'Semolina,unenriched', 'Sugars'] = 0.7
+# flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Sugar_Tot_(g)'] = 1
+# flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Fiber_TD_(g)'] = 14.6
+# flowers.loc[flowers['Shrt_Desc'] == 'Kale,raw', 'Copper_(mg)'] = 0.0533
 na_indices = flowers.isnull().any(axis=1).to_numpy().nonzero()
-na_foods = flowers.iloc[na_indices]['Shrt_Desc'].values
-flowers = flowers.dropna()
+# na_foods = flowers.iloc[na_indices]['Shrt_Desc'].values
+# flowers = flowers.dropna()
+# print(na_foods)
 
 # RDI
-df_rdi = read_csv('nutrimap/data/matched_rdi.csv')
+df_rdi = read_csv('nutrimap/data/matched_rdi_sr.csv')
 flowers = flowers.set_index('Shrt_Desc')
 
 
@@ -148,7 +199,7 @@ def get_rdi(row):
 flowers = flowers.apply(get_rdi, axis=1)
 flowers['Category'] = ''
 for grp_name in food_grps:
-    new_food = [x for x in food_grps[grp_name] if x not in na_foods]
+    new_food = [x for x in food_grps[grp_name]]  # if x not in na_foods]
     flowers.loc[new_food, 'Category'] = grp_name
 flowers = flowers.reset_index().copy()
 
