@@ -1,0 +1,60 @@
+# These are from ods,od.nih.gov. Diffs cronometer;K=3.4g;VitA=3000IU
+# WHO sugar 25g; AHA sugar 37.5g
+# Caretonoids values are very approximate,mix of the web and https://www.ncbi.nlm.nih.gov/books/NBK225469/
+# eaa values are from cronometer,so the american recommendation rather than the WHO (it is a bit higher)
+Amount,MatchedNutrient,Nutrient,Unit
+120,Vitamin K,Vitamin K,µg
+15,Vitamin E,Vitamin E,mg
+15,Vitamin D (D2 + D3),Vitamin D,µg
+900,Vitamin A,Vitamin A,ug
+60,Vitamin C,Vitamin C,mg
+1.2,Vitamin B1 (Thiamin),"Thiamin, Thiamine or Vitamin B1",mg
+1.3,Vitamin B2 (Riboflavin),Riboflavin or Vitamin B2,mg
+16,Vitamin B3 (Niacin),Niacin,mg
+5,Vitamin B4 (Pantothenic acid),Pantothenic acid,mg
+1.3,Vitamin B6,Vitamin B6,mg
+400,Vitamin B9 (Folate),Folacin or Folate,µg
+2.4,Vitamin B12,Vitamin B12,µg
+1000,Calcium,Calcium,mg
+2.3,Chloride,Chloride,g
+35,Chromium,Chromium,ug
+0.9,Copper,Copper,mg
+4,Flouride,Flouride,mg
+150,Iodine,Iodine,ug
+8,Iron,Iron,mg
+420,Magnesium,Magnesium,mg
+2.3,Manganese,Manganese,mg
+45,Molybdenum,Molybdenum,ug
+700,Phosphorus,Phosphorus,mg
+4700,Potassium,Potassium,mg
+55,Selenium,Selenium,µg
+1500,Sodium,Sodium,mg
+11,Zinc,Zinc,mg
+2200,Energy,Energy,kcal
+200,Carbs,Carbs,g
+65,Fat,Fat,g
+56,Protein,Protein,g
+25,Sugars,Sugar,g
+38,Fiber,Fiber,g
+20,Saturated fat,SatFat,g
+1.6,Omega-3,Omega-3,g
+17,Omega-6,Omega-6,g
+22,Monounsaturated fat,MonoFat,g
+22,Polyunsaturated fat,PolyFat,g
+0.665,Cystine,Cystine,g
+0.98,Histidine,Histidine,g
+1.33,Isoleucine,Isoleucine,g
+2.94,Leucine,Leucine,g
+2.66,Lysine,Lysine,g
+0.665,Methionine,Methionine,g
+1.155,Phenylalanine,Phenylalanine,g
+1.4,Threonine,Threonine,g
+0.35,Tryptophan,Tryptophan,g
+1.155,Tyrosine,Tyrosine,g
+1.68,Valine,Valine,g
+10000,Lycopene,Lycopene,ug
+12000,Lutein + zeaxanthin,Lutein + zeaxanthin,ug
+800,alpha-Carotene,alpha-Carotene,ug
+4500,beta-Carotene,beta-Carotene,ug
+300,beta-Cryptoxanthin,beta-Cryptoxanthin,ug
+400,Retinol,Retinol,ug
