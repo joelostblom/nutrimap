@@ -1,5 +1,6 @@
 from pandas import read_csv, Series
 # from sklearn.manifold import TSNE
+import pandas as pd
 from sklearn.decomposition import PCA
 from scipy.cluster.hierarchy import dendrogram, linkage
 from bokeh.io import curdoc
@@ -51,53 +52,6 @@ YlOrBr = [
     '#762a05', '#742905', '#732905', '#712806', '#702806', '#6e2706', '#6c2706',
     '#6b2606', '#692606', '#682506', '#662506']
 
-food_grps = {
-    'grains': ['Quinoa, uncooked', "Oats", 'Barley, hulled', 'Barley, pearled, raw',
-               'Buckwheat', "Rice, brown, long-grain, raw", 'Wild rice, raw',
-               'Millet, raw', 'Bulgur, dry', 'Spelt, uncooked', 'Wheat, durum',
-               'Wheat, soft white', 'Wheat, hard red winter', 'Sorghum grain',
-               'Wheat, kamut khorasan, uncooked', 'Amaranth grain, uncooked',
-               'Rice, white, long-grain, regular, raw, unenriched', 'Semolina, unenriched',
-               'Triticale', 'Teff, uncooked', 'Rye grain'],
-    'vegetables': ['Brussels sprouts, raw', 'Beets, raw', 'Broccoli, raw',
-                   'Cauliflower, raw', 'Eggplant, raw', ],
-    'greens': ['Kale, raw', 'Spinach, raw', 'Lettuce, cos or romaine, raw',
-               'Chard, swiss, raw', 'Arugula, raw', 'Collards, raw',
-               'Lettuce, iceberg (includes crisphead types), raw', 'Beet greens, raw',
-               'Mustard greens, raw', 'Cabbage, chinese (pak-choi), raw',
-               'Cabbage, raw', ],
-    'legumes': ['Beans, black turtle, mature seeds, raw', 'Lentils, raw',
-                'Lentils, pink or red, raw', 'Beans, snap, green, raw',
-                'Soybeans, green, raw', 'Beans, pinto, mature seeds, sprouted, raw',
-                'Beans, snap, yellow, raw', 'Beans, adzuki, mature seeds, raw',
-                'Beans, black, mature seeds, raw',
-                'Beans, black turtle, mature seeds, raw',
-                'Beans, cranberry (roman), mature seeds, raw',
-                'Beans, french, mature seeds, raw', 'Beans, navy, mature seeds, raw',
-                'Beans, kidney, all types, mature seeds, raw',
-                'Beans, pink, mature seeds, raw', 'Beans, pinto, mature seeds, raw',
-                'Beans, small white, mature seeds, raw',
-                'Beans, white, mature seeds, raw', 'Soybeans, mature seeds, raw',
-                'Broadbeans (fava beans), mature seeds, raw', 'Peas, green, raw',
-                'Chickpeas (garbanzo beans, bengal gram), mature seeds, raw',
-                'Peas, green, split, mature seeds, raw'],
-    'nuts': [f'Nuts, {x.lower()}' for x in ['Beechnuts, dried', 'Brazilnuts, dried, unblanched',
-             'Butternuts, dried', 'Cashew nuts, raw',
-             'Hazelnuts or filberts', 'Hickorynuts, dried',
-             'Macadamia nuts, raw', 'Pilinuts, dried',
-             'Pine nuts, dried', 'Pistachio nuts, raw', 'Walnuts, english',
-             'Coconut meat, dried (desiccated), not sweetened']] + ['Peanuts, all types, raw'],
-    'fruits': ["Apples, raw, with skin",
-               'Pineapple, raw, all varieties', 'Plums, raw', 'Pears, raw',
-               'Apricots, raw', 'Avocados, raw, all commercial varieties',
-               'Blackberries, frozen, unsweetened', 'Blueberries, raw',
-               'Cranberries, raw', 'Raspberries, raw', 'Clementines, raw',
-               'Strawberries, raw', 'Dates, medjool', 'Plantains, green, raw',
-               'Pomegranates, raw', 'Bananas, raw', 'Plantains, yellow, raw',
-               'Kiwifruit, green, raw', 'Figs, dried, uncooked', 'Oranges, raw, all commercial varieties',
-               'Apricots, dried, sulfured, uncooked', 'Olives, ripe, canned (small-extra large)']
-    }
-
 nutrients = dict(
 macros = [
  'Energy',
@@ -132,77 +86,45 @@ vitamins = [
  'Vitamin B1 (Thiamin)',
  'Vitamin B2 (Riboflavin)',
  'Vitamin B3 (Niacin)',
- # 'Vitamin B4 (Panthothenic acid)',
+ 'Vitamin B4 (Pantothenic acid)',
  'Vitamin B6',
  'Vitamin B9 (Folate)',
- # 'Vitamin B12',
+ 'Vitamin B12',
  # 'Vitamin A, IU',
  'Vitamin A',
  'Vitamin C',
- # 'Vitamin D (D2 + D3)',
+ 'Vitamin D (D2 + D3)',
  # 'Vitamin D (D2 + D3), International Units',
- 'Vitamin E (alpha-tocopherol)',
- 'Vitamin K (phylloquinone)',
+ 'Vitamin E',
+ 'Vitamin K',
 ],
 
-# caretonoids = [
-#  'Lycopene',
-#  'Lutein + zeaxanthin',
-#  'Carotene, alpha',
-#  'Carotene, beta',
-#  'Retinol',
-#  'Cryptoxanthin, beta',
-# ],
+# eaas plus cysteine and tyrosine
+aas = [
+ 'Cystine',
+ 'Histidine',
+ 'Isoleucine',
+ 'Leucine',
+ 'Lysine',
+ 'Methionine',
+ 'Phenylalanine',
+ 'Threonine',
+ 'Tryptophan',
+ 'Tyrosine',
+ 'Valine',
+],
+
+caretonoids = [
+ 'Lycopene',
+ 'Lutein + zeaxanthin',
+ 'alpha-Carotene',
+ 'beta-Carotene',
+ # 'Retinol',
+ 'beta-Cryptoxanthin',
+],
 )
-# 'Panto_Acid_mg)', 'Folate_DFE_(µg)',
-# vit a from chronometer, not canada
-coi = ['Shrt_Desc'] + [x for sub in nutrients.values() for x in sub]
 
-foods_all = read_csv('nutrimap/data/sr-dec2019.csv', usecols=coi, index_col=0)
-# foods_all.index = foods_all.index.str.capitalize()
-# food_names = [fn.replace(',', ', ') for fn_list in food_grps.values() for fn in fn_list]
-# foods_sub = foods_piv.loc[food_names].copy()
-# foods = foods_all.loc[[x for sl in food_grps.values() for x in sl]].copy()
-flowers = foods_all.reset_index().copy()
-flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Sugars'] = 1.1
-flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Selenium'] = 28.9
-flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Vitamin E (alpha-tocopherol)'] = 0.42
-flowers.loc[flowers['Shrt_Desc'] == 'Oats', 'Vitamin K (phylloquinone)'] = 2
-flowers.loc[flowers['Shrt_Desc'] == 'Quinoa, uncooked', 'Sugars'] = 6.1
-flowers.loc[flowers['Shrt_Desc'] == 'Buckwheat', 'Sugars'] = 1.9
-flowers.loc[flowers['Shrt_Desc'] == 'Millet,raw', 'Sugars'] = 1.5
-# # used entry for semolina flour as th evalues were very similar
-flowers.loc[flowers['Shrt_Desc'] == 'Semolina,unenriched', 'Sugars'] = 0.7
-# flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Sugar_Tot_(g)'] = 1
-# flowers.loc[flowers['Shrt_Desc'] == 'Triticale', 'Fiber_TD_(g)'] = 14.6
-# flowers.loc[flowers['Shrt_Desc'] == 'Kale,raw', 'Copper_(mg)'] = 0.0533
-na_indices = flowers.isnull().any(axis=1).to_numpy().nonzero()
-# na_foods = flowers.iloc[na_indices]['Shrt_Desc'].values
-# flowers = flowers.dropna()
-# print(na_foods)
-
-# RDI
-df_rdi = read_csv('nutrimap/data/matched_rdi_sr.csv')
-flowers = flowers.set_index('Shrt_Desc')
-
-
-def get_rdi(row):
-    '''Calculate the RDI'''
-    new_row = Series()
-    for col_name in row.index:
-        new_row.loc[col_name] = round(
-            100 * row[col_name] / df_rdi.loc[
-                df_rdi['MatchedNutrient'] == col_name, 'Amount'].values[0], 1)
-    return new_row
-
-
-flowers = flowers.apply(get_rdi, axis=1)
-flowers['Category'] = ''
-for grp_name in food_grps:
-    new_food = [x for x in food_grps[grp_name]]  # if x not in na_foods]
-    flowers.loc[new_food, 'Category'] = grp_name
-flowers = flowers.reset_index().copy()
-
+flowers = pd.read_csv('nutrimap/data/clean_rdi.csv')
 flowers['Shrt_Desc'] = flowers['Shrt_Desc'].str[:20]
 # Projection figure
 plot = figure(plot_height=400, plot_width=400, title='Food similarity',
@@ -371,12 +293,13 @@ def sort_by(attr, old, new):
     replace_heatmap(sort_by=new)
 
 
-dd_sort = Dropdown(label='Sort by', menu=list(zip(coi, coi)), width=150)
+dd_sort = Dropdown(label='Sort by', menu=list(zip(flowers.columns, flowers.columns)), width=150)
 dd_sort.on_change('value', sort_by)
 # Scatter plot selection change
 sctr.data_source.selected.on_change('indices', select_scatter_points)
 # Multiselection list for food groups
-food_grp_options = [(grp, grp) for grp in food_grps.keys()]
+# food_grp_options = [(grp, grp) for grp in flowers['Category'].unique()]
+food_grp_options = list(zip(flowers['Category'].unique(), flowers['Category'].unique()))
 food_grp_mselect = MultiSelect(options=food_grp_options, width=150)
 food_grp_mselect.size = 6
 food_grp_mselect.on_change('value', select_category)
