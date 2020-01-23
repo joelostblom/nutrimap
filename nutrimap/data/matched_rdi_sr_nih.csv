@@ -37,6 +37,7 @@ Amount,MatchedNutrient,Nutrient,Unit
 25,Sugars,Sugar,g
 38,Fiber,Fiber,g
 20,Saturated fat,SatFat,g
+300,Cholesterol,Cholesterol,mg
 1.6,Omega-3,Omega-3,g
 17,Omega-6,Omega-6,g
 22,Monounsaturated fat,MonoFat,g

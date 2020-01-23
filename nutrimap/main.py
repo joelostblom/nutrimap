@@ -66,7 +66,7 @@ macros_details =  [
  'Monounsaturated fat',
  'Polyunsaturated fat',
  'Saturated fat',
- # 'Cholesterol',
+ 'Cholesterol',
 ],
 
 minerals = [
@@ -301,7 +301,7 @@ sctr.data_source.selected.on_change('indices', select_scatter_points)
 # food_grp_options = [(grp, grp) for grp in flowers['Category'].unique()]
 food_grp_options = list(zip(flowers['Category'].unique(), flowers['Category'].unique()))
 food_grp_mselect = MultiSelect(options=food_grp_options, width=150,
-                               value=['grains', 'greens'])
+                               value=['grains', 'greens', 'meats'])
 food_grp_mselect.size = 6
 food_grp_mselect.on_change('value', select_category)
 # Multiselection list for heatmap columns
@@ -362,5 +362,5 @@ lay = column(
 curdoc().add_root(lay)
 curdoc().title = "Nutrimap"
 # Temp workaroudn until I swtich to panel
-select_category(0, 0, ['grains', 'greens'])
+select_category(0, 0, ['grains', 'greens', 'meats'])
 select_hm_cols(0, 0, ['macros', 'macros_details', 'vitamins', 'minerals'])
