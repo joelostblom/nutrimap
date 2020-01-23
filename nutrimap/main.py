@@ -326,18 +326,21 @@ This dashboard facilitates comparisons of nutrient composition between common
 food items to give an overview of which foods are high and low in what
 nutrients. I think colors are more efficient at presenting overviews than
 tables with numbers, so I chose to present this information as heatmaps.
-Evenutally I want to add more options computing the RDI, but for now, the RDI
-is based on a 70 kg male in his 30s. This is a minor issue since the dashboard
-mainly use RDI to provide a reference value for coloring the heatmap rather
-than recommending how much of a certain food item one should eat. For the
-latter, I highly reccomend <a href=https://cronometer.com>Cronometer</a>.
+The data is from USDA, who don't yet collect phytonutrients, which are
+generally abundant in plant-based foods. Evenutally I want to add more options
+computing the RDI, but for now, the RDI is based on a 70 kg male in his 30s.
+This is a minor issue since the dashboard mainly use RDI to provide a reference
+value for coloring the heatmap rather than recommending how much of a certain
+food item one should eat. For the latter, I highly reccomend <a
+href=https://cronometer.com>Cronometer</a>.
 </p>''')
 desc_left = Div(text=
 '''<!--<style>.left {padding-left: 0px; margin-left: 0px; padding-bottom: 2px;}</style>-->
 <h2 class="left">Nutrient visualization</h2>
 <p class="left">
-The nutrients for 100g of each food are shown. The colors are normalized to RDI
-and capped at 100% by default.<br>
+The nutrients for 100g of each food are shown (dry weight for grains and
+legumes, wet weight for everything else). The colors are normalized to RDI and
+capped at 100% by default.
 </p>''')
 desc_right = Div(text=
 '''<!--<style>.right {padding-left: 100px;, padding-right: -100px; margin-right: -100px;}</style>-->
