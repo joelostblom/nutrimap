@@ -318,17 +318,35 @@ checkboxes.on_change('active', rdi_normalization)
 # Note that I have commented out the styling for now, seems not to be needed
 # This could be made prettier and maybe multiline instead of soft wrap
 desc_top = Div(text=
-'''<!--<style>p{margin-top: -15px;} .head {padding-right: -420px; margin-right: -420px;}</style>-->
-<h1>Nutrimap</h1><p class="head">
-The goal of this web app is to facilitate comparisons of nutrient content in food and to find nutrionally similar food items. The app is still under active development and more food items are to be added.</p>''')
+'''<head><title>Nutrimap</title></head>
+<!--<style>p{margin-top: -15px;} .head {padding-right: -420px; margin-right: -420px;}</style>-->
+<h1>Nutrimap</h1>
+<p class="head">
+This dashboard facilitates comparisons of nutrient composition between common
+food items to give an overview of which foods are high and low in what
+nutrients. I think colors are more efficient at presenting overviews than
+tables with numbers, so I chose to present this information as heatmaps.
+Evenutally I want to add more options computing the RDI, but for now, the RDI
+is based on a 70 kg male in his 30s. This is a minor issue since the dashboard
+mainly use RDI to provide a reference value for coloring the heatmap rather
+than recommending how much of a certain food item one should eat. For the
+latter, I highly reccomend <a href=https://cronometer.com>Cronometer</a>.
+</p>''')
 desc_left = Div(text=
 '''<!--<style>.left {padding-left: 0px; margin-left: 0px; padding-bottom: 2px;}</style>-->
-<h2 class="left">Nutrient visualization</h2><p class="left">
-The nutrients for 100g of each food are shown. The colors are normalized to RDI and capped at 100%.<br></p>''')
+<h2 class="left">Nutrient visualization</h2>
+<p class="left">
+The nutrients for 100g of each food are shown. The colors are normalized to RDI
+and capped at 100% by default.<br>
+</p>''')
 desc_right = Div(text=
 '''<!--<style>.right {padding-left: 100px;, padding-right: -100px; margin-right: -100px;}</style>-->
-<h2 class="right">Selection tools</h2><p class="right">
-Pick a subset of nutrients and food groups to visualize using the lists (ctrl to select multiple) or select individual food items in the food similarity scatter plot by dragging with the mouse or clicing to select (shift to select multiple).<br></p>''')
+<h2 class="right">Selection tools</h2>
+<p class="right">
+Pick nutrients and food groups to visualize using the lists or select
+individual food items in the food similarity scatter plot by dragging with the
+mouse or clicing to select. Ctrl and shift can be used to select multiple items.
+</p>''')
 
 lay = column(
     desc_top,
