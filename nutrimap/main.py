@@ -300,12 +300,13 @@ sctr.data_source.selected.on_change('indices', select_scatter_points)
 # Multiselection list for food groups
 # food_grp_options = [(grp, grp) for grp in flowers['Category'].unique()]
 food_grp_options = list(zip(flowers['Category'].unique(), flowers['Category'].unique()))
-food_grp_mselect = MultiSelect(options=food_grp_options, width=150)
+food_grp_mselect = MultiSelect(options=food_grp_options, width=150,
+                               value=['grains', 'greens'])
 food_grp_mselect.size = 6
 food_grp_mselect.on_change('value', select_category)
 # Multiselection list for heatmap columns
 hm_cols_options = [(grp, grp) for grp in nutrients.keys()]
-hm_cols_mselect = MultiSelect(options=hm_cols_options, width=150)
+hm_cols_mselect = MultiSelect(options=hm_cols_options, width=150, value=['macros', 'macros_details', 'vitamins', 'minerals'])
 hm_cols_mselect.size = 6
 hm_cols_mselect.on_change('value', select_hm_cols)
 
@@ -339,6 +340,9 @@ lay = column(
         column(desc_left,
                create_heatmap(flowers, 100, None),
                width=950),
-        )) 
+        ))
 curdoc().add_root(lay)
-curdoc().title = "Sliders"
+curdoc().title = "Nutrimap"
+# Temp workaroudn until I swtich to panel
+select_category(0, 0, ['grains', 'greens'])
+select_hm_cols(0, 0, ['macros', 'macros_details', 'vitamins', 'minerals'])
