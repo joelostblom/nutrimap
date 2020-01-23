@@ -302,12 +302,12 @@ sctr.data_source.selected.on_change('indices', select_scatter_points)
 food_grp_options = list(zip(flowers['Category'].unique(), flowers['Category'].unique()))
 food_grp_mselect = MultiSelect(options=food_grp_options, width=150,
                                value=['grains', 'greens', 'meats'])
-food_grp_mselect.size = 6
+food_grp_mselect.size = 7
 food_grp_mselect.on_change('value', select_category)
 # Multiselection list for heatmap columns
 hm_cols_options = [(grp, grp) for grp in nutrients.keys()]
 hm_cols_mselect = MultiSelect(options=hm_cols_options, width=150, value=['macros', 'macros_details', 'vitamins', 'minerals'])
-hm_cols_mselect.size = 6
+hm_cols_mselect.size = 7
 hm_cols_mselect.on_change('value', select_hm_cols)
 
 checkboxes = CheckboxGroup(labels=['Normalize to RDI', 'Cap at 100% RDI'],
