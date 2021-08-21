@@ -279,7 +279,7 @@ sort_by_dropdown = dcc.Dropdown(
 )
 
 # TODO does the error when erasing all here crash the app?
-color_max = dcc.Input(type='number', value=100, min=1)
+color_max = dcc.Input(type='number', value=100, min=1, style={'width': '100%'})  # This width is set as more than 100% by default for some reason
 
 @app.callback(
     Output('sort-by-dropdown', 'options'),
@@ -289,6 +289,7 @@ def set_sort_by_options(selected_nutrient_groups):
     return [{'label': nutrient.capitalize().replace('_', ' '), 'value': nutrient}
             for group in nested_nutrient_names for nutrient in group]
 
+# TODO handle when ampty lists are paseed by showing some help message
 # Heatmap callback
 @app.callback(
     args=dict(
