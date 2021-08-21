@@ -203,7 +203,8 @@ header = dbc.Row(
                                     }
                                 ),
                                 html.P(
-                                    'Select foods and nutrients to display in the heatmap',
+                                    # 'Select foods and nutrients to display in the heatmap',
+                                    'The cure for food label indegestion',
                                     style={'color': 'white'}
                                 ),
                             ]
