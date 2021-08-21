@@ -165,8 +165,8 @@ nutrient_groups = dict(
 
 # App layout and components
 app = dash.Dash(__name__, plugins=[dl.plugins.FlexibleCallbacks()])
-server = app.server
 tpl = dl.templates.DbcSidebar(app, title="", sidebar_columns=3)
+server = app.server
 
 # Header bar
 collapse_button = html.Div(
