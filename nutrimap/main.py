@@ -1,5 +1,5 @@
 import math
-from os import link
+from pathlib import Path
 
 import dash
 import dash_bootstrap_components as dbc
@@ -21,9 +21,11 @@ import dash_html_components as html
 # TODO Could add a step here in the beginning where one can search through all
 # veggies etc in the entire data base by reading in all the neames as a list
 # and then only reading one row from the full data frame
-foods = pd.read_csv('../data/processed/foods.csv', index_col=0)
+
+root_dir = Path(__file__).parents[1]
+foods = pd.read_csv(root_dir / 'data' / 'processed' / 'foods.csv', index_col=0)
 # RDI
-rdis = pd.read_csv('../data/processed/matched_rdi_sr_nih.csv', comment='#')
+rdis = pd.read_csv(root_dir / 'data' / 'processed' / 'matched_rdi_sr_nih.csv', comment='#')
 def compute_rdi_proportion(row):
     '''Calculate the proportion of the RDI contained in each nutrient'''
     new_row = pd.Series(dtype=float)
