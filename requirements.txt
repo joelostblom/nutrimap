@@ -1,6 +1,5 @@
 pandas
-gunicorn
 dash
-dash_bootstrap_components
+dash_bootstrap_components==0.13.*
 plotly
-dash-labs
+dash-labs==0.*
