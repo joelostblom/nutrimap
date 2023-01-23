@@ -3,12 +3,12 @@ from pathlib import Path
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import dcc
+import dash_core_components as dcc
 import dash_labs as dl
 import pandas as pd
 import plotly.express as px
 from dash.dependencies import Input, Output, State
-from dash import html
+import dash_html_components as html
 
 # TODO add instructions from old dashboard
 # TODO add option to normalize values to per 1000 kcal or similar, this would

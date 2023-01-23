@@ -1,0 +1,5 @@
+pandas
+dash
+dash_bootstrap_components==0.13.*
+plotly
+dash-labs==0.*
