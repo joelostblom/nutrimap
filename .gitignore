@@ -1,5 +1,2 @@
-ipynb_checkpoints
-DS_Store
-.ipynb_checkpoints/README-checkpoint.md
-altair-panel-version/.ipynb_checkpoints/altair-heatmap-checkpoint.ipynb
-nutrimap/.ipynb_checkpoints/app-checkpoint.py
+.ipynb_checkpoints
+.DS_Store
