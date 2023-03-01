@@ -212,20 +212,11 @@ nutrient_groups = dict(
 )
 
 
-# flatten list of food/nutrient groups selected in widget
-def get_selected(values):
-    names = []
-    for group in values:
-        for i in group:
-            names.append(i)
-    return names
-
-
 # add checkbuttongroup for food groups
 food_group = pn.widgets.MultiChoice(
     name='Food Groups',
-    value=['vegetables', 'grains'],  # currently selected
-    options=list(food_groups.keys()),  # options
+    value=['vegetables', 'grains'],
+    options=list(food_groups.keys()),
 )
 
 # add checkbuttongroup for nutrient groups
@@ -250,7 +241,7 @@ def make_plot(food_group, nutrient_group, max_dv):
     # Load the data
     df = foods_long  # define df
     df.loc[df['value'] > max_dv, 'value'] = max_dv
-    # filter data according to selectors
+    # Build up filter with all the values of the selected groups
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
     selected_nutrients = []
@@ -275,7 +266,7 @@ def make_plot(food_group, nutrient_group, max_dv):
     return chart
 
 
-# build the dashboard
+# Build the dashboard
 pn.template.FastListTemplate(
     site='Nutrimap',
     title='A cure for food label indigestion',
