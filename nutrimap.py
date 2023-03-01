@@ -250,9 +250,8 @@ def make_plot(food_group, nutrient_group, max_dv):
         for nutrient in nutrient_group
     ]
     mask = df['food'].isin(selected_foods) & (df['nutrient'].isin(selected_nutrients))
-    df = df.loc[mask]  # filter the dataframe
-    # create the Altair chart object
-    chart = alt.Chart(df).mark_rect().encode(
+    # Create the Altair chart object
+    chart = alt.Chart(df[mask]).mark_rect().encode(
         x=alt.X('nutrient', axis=alt.Axis(title='Nutrient')),
         y=alt.Y('food', axis=alt.Axis(title='Food')),
         color=alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),
