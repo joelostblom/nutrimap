@@ -24,6 +24,7 @@ foods = pd.read_csv(
     axis=1
 ).reset_index().melt(
     id_vars='food',
+    value_name='rdi',
     ignore_index=False
 ).rename(
     columns={'variable': 'nutrient'}
@@ -248,7 +249,7 @@ def make_plot(food_group, nutrient_group, max_dv):
     ]
 
     filtered_df = foods.assign(
-        value=lambda df: df['value'].clip(upper=max_dv)
+        rdi=lambda df: df['rdi'].clip(upper=max_dv)
     ).query(
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
@@ -264,8 +265,12 @@ def make_plot(food_group, nutrient_group, max_dv):
             )
         ),
         alt.Y('food', title='', axis=alt.Axis(orient='right')),
-        alt.Color('value', title="Percent of Daily Value"),
-        alt.Tooltip(['food:O', 'nutrient:O', 'value:Q']),
+        alt.Color('rdi', title="Percent of Daily Value"),
+        tooltip=[
+            alt.Tooltip('food', title='Food'),
+            alt.Tooltip('nutrient', title='Nutrient'),
+            alt.Tooltip('rdi', title='RDI'),
+        ]
     )
     return chart
 
