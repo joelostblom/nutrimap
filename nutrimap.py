@@ -220,24 +220,29 @@ def get_selected(values):
             names.append(i)
     return names
 
+
 # add checkbuttongroup for food groups
-food_group = pn.widgets.MultiChoice(name='Food Groups',
-                                                value=['vegetables', 'grains'], # currently selected
-                                                options=list(food_groups.keys()) # options
-                                               )
+food_group = pn.widgets.MultiChoice(
+    name='Food Groups',
+    value=['vegetables', 'grains'],  # currently selected
+    options=list(food_groups.keys()),  # options
+)
 
 # add checkbuttongroup for nutrient groups
-nutrient_group = pn.widgets.MultiChoice(name='Nutrient Groups',
-                                                value=['macros', 'detailed_macros'],
-                                                options=list(nutrient_groups.keys())
-                                               )
+nutrient_group = pn.widgets.MultiChoice(
+    name='Nutrient Groups',
+    value=['macros', 'detailed_macros'],
+    options=list(nutrient_groups.keys()),
+)
 
 # add slider to set maximum DV value, affecting max value of heatmap color range
-max_dv = pn.widgets.IntSlider(name = 'Maximum Daily Value',
-                                   start = 0,
-                                   end = int(max(foods_long['value'])),
-                                   value = 300
-                                  )
+max_dv = pn.widgets.IntSlider(
+    name='Maximum Daily Value',
+    start=0,
+    end=int(max(foods_long['value'])),
+    value=300,
+)
+
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
