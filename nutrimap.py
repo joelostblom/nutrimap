@@ -201,9 +201,7 @@ def make_plot(food_group, nutrient_group, max_dv):
         y = alt.Y('food', axis=alt.Axis(title = 'Food')),
         color = alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),      
         tooltip=alt.Tooltip(['food:O', 'nutrient:O', 'value:Q']
-                           )).properties(
-            height = 800,
-            width = 600                                      
+                           )
     ).configure_axisY(
         orient = 'right'
     ).configure_axisX(
