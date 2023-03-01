@@ -3,12 +3,8 @@ import pandas as pd
 import panel as pn
 
 
-# import data
-foods = pd.read_csv('data/processed/foods.csv', index_col=0)
-
 # get RDI values
 rdis = pd.read_csv('data/processed/matched_rdi_sr_nih.csv', comment='#')
-
 
 def compute_rdi_proportion(row):
     '''Calculate the proportion of the RDI contained in each nutrient'''
@@ -20,14 +16,18 @@ def compute_rdi_proportion(row):
         new_row.loc[col_name] = rdi_proportion  #
     return new_row
 
-
-# compute RDI values
-foods = foods.apply(compute_rdi_proportion, axis=1).reset_index()
-
-# pivot the data to long form
-foods_long = pd.melt(
-    foods, id_vars='food', value_vars=foods.columns.tolist()[1:], ignore_index=False
-).rename(columns={'variable': 'nutrient'})
+foods = pd.read_csv(
+    'data/processed/foods.csv',
+    index_col=0
+).apply(
+    compute_rdi_proportion,
+    axis=1
+).reset_index().melt(
+    id_vars='food',
+    ignore_index=False
+).rename(
+    columns={'variable': 'nutrient'}
+)
 
 food_groups = {
     # TODO add corn on the cob as veggie
@@ -230,7 +230,7 @@ nutrient_group = pn.widgets.MultiChoice(
 max_dv = pn.widgets.IntSlider(
     name='Maximum Daily Value',
     start=0,
-    end=int(max(foods_long['value'])),
+    end=int(max(foods['value'])),
     value=300,
 )
 
@@ -238,10 +238,7 @@ max_dv = pn.widgets.IntSlider(
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
 def make_plot(food_group, nutrient_group, max_dv):
-    # Load the data
-    df = foods_long  # define df
-    df.loc[df['value'] > max_dv, 'value'] = max_dv
-    # Build up filter with all the values of the selected groups
+    # Find all the values of each selected groups (e.g. all the food names for type "vegetable")
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
     selected_nutrients = []
@@ -249,9 +246,15 @@ def make_plot(food_group, nutrient_group, max_dv):
         selected_nutrients.extend(nutrient_groups[nutrient])
         for nutrient in nutrient_group
     ]
-    mask = df['food'].isin(selected_foods) & (df['nutrient'].isin(selected_nutrients))
+
+    filtered_df = foods.assign(
+        value=lambda df: df['value'].clip(upper=max_dv)
+    ).query(
+        'food.isin(@selected_foods)'
+        '& nutrient.isin(@selected_nutrients)'
+    )
     # Create the Altair chart object
-    chart = alt.Chart(df[mask]).mark_rect().encode(
+    chart = alt.Chart(filtered_df).mark_rect().encode(
         x=alt.X('nutrient', axis=alt.Axis(title='Nutrient')),
         y=alt.Y('food', axis=alt.Axis(title='Food')),
         color=alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),
