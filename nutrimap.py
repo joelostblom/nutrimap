@@ -15,7 +15,7 @@ def compute_rdi_proportion(row):
         nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].values[0]
         rdi_proportion = round(100 * row[col_name] / nutrient_rdi, 3)
         # Round to 2 significant digits https://stackoverflow.com/a/48812729/2166823
-        new_row.loc[col_name] = rdi_proportion # 
+        new_row.loc[col_name] = rdi_proportion #
     return new_row
 
 # compute RDI values
@@ -30,14 +30,14 @@ foods_long = pd.melt(foods,
 
 food_groups = {
     # TODO add corn on the cob as veggie
-    'grains': ['Quinoa, uncooked',  'Amaranth grain, uncooked', 'Oats', 'Barley, pearled, raw', 'Corn grain, yellow', 
+    'grains': ['Quinoa, uncooked',  'Amaranth grain, uncooked', 'Oats', 'Barley, pearled, raw', 'Corn grain, yellow',
                'Buckwheat', 'Rice, brown, long-grain, raw', 'Wild rice, raw',
                'Millet, raw', 'Bulgur, dry', 'Spelt, uncooked', 'Wheat, durum',
                'Wheat, hard red winter', 'Sorghum grain',
                'Wheat, kamut khorasan, uncooked',
-               'Rice, white, long-grain, regular, raw, unenriched', 
+               'Rice, white, long-grain, regular, raw, unenriched',
                'Teff, uncooked', 'Rye grain'],
-    'vegetables': ['Brussels sprouts, raw', 'Beets, raw', 'Broccoli, raw', 
+    'vegetables': ['Brussels sprouts, raw', 'Beets, raw', 'Broccoli, raw',
                    'Cauliflower, raw', 'Eggplant, raw', 'Tomatoes, red, ripe, raw, year round average',
                    'Peas, green, frozen, unprepared'],
     'greens': ['Kale, raw', 'Spinach, raw', 'Lettuce, cos or romaine, raw',
@@ -59,8 +59,8 @@ food_groups = {
                 'Peas, green, split, mature seeds, raw'],
     'nuts': [f'Nuts, {x.lower()}' for x in ['Brazilnuts, dried, unblanched',
              'Cashew nuts, raw',
-             'Hazelnuts or filberts', 
-             'Macadamia nuts, raw', 
+             'Hazelnuts or filberts',
+             'Macadamia nuts, raw',
              'Pine nuts, dried', 'Pistachio nuts, raw', 'Walnuts, english',
              'Coconut meat, dried (desiccated), not sweetened']] + ['Peanuts, all types, raw'],
     'fruits': ["Apples, raw, with skin",
@@ -163,14 +163,14 @@ def get_selected(values):
     return names
 
 # add checkbuttongroup for food groups
-food_group = pn.widgets.MultiChoice(name='Food Groups', 
+food_group = pn.widgets.MultiChoice(name='Food Groups',
                                                 value=['vegetables', 'grains'], # currently selected
                                                 options=list(food_groups.keys()) # options
                                                )
 
 # add checkbuttongroup for nutrient groups
-nutrient_group = pn.widgets.MultiChoice(name='Nutrient Groups', 
-                                                value=['macros', 'detailed_macros'], 
+nutrient_group = pn.widgets.MultiChoice(name='Nutrient Groups',
+                                                value=['macros', 'detailed_macros'],
                                                 options=list(nutrient_groups.keys())
                                                )
 
@@ -183,25 +183,23 @@ max_dv = pn.widgets.IntSlider(name = 'Maximum Daily Value',
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
-def make_plot(food_group, nutrient_group, max_dv):     
+def make_plot(food_group, nutrient_group, max_dv):
     # Load the data
     df = foods_long # define df
     df.loc[df['value'] > max_dv, 'value'] = max_dv
     # filter data according to selectors
-    #mask = (df['food'].isin(get_selected(food_group)) & (df['nutrient'].isin(get_selected(nutrient_group))))
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
     selected_nutrients = []
     [selected_nutrients.extend(nutrient_groups[nutrient]) for nutrient in nutrient_group]
     mask = (df['food'].isin(selected_foods) & (df['nutrient'].isin(selected_nutrients)))
-    df = df.loc[mask] # filter the dataframe     
+    df = df.loc[mask] # filter the dataframe
     # create the Altair chart object
     chart = alt.Chart(df).mark_rect().encode(
         x = alt.X('nutrient', axis=alt.Axis(title = 'Nutrient')),
         y = alt.Y('food', axis=alt.Axis(title = 'Food')),
-        color = alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),      
-        tooltip=alt.Tooltip(['food:O', 'nutrient:O', 'value:Q']
-                           )
+        color = alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),
+        tooltip=alt.Tooltip(['food:O', 'nutrient:O', 'value:Q'])
     ).configure_axisY(
         orient = 'right'
     ).configure_axisX(
