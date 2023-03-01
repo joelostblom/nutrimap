@@ -11,7 +11,7 @@ def compute_rdi_proportion(row):
     new_row = pd.Series(dtype=float)
     for col_name in row.index:
         nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].to_numpy()[0]
-        rdi_proportion = round(100 * row[col_name] / nutrient_rdi, 3)
+        rdi_proportion = round(row[col_name] / nutrient_rdi, 3)
         # Round to 2 significant digits https://stackoverflow.com/a/48812729/2166823
         new_row.loc[col_name] = rdi_proportion  #
     return new_row
@@ -249,7 +249,7 @@ def make_plot(food_group, nutrient_group, max_dv):
     ]
 
     filtered_df = foods.assign(
-        rdi=lambda df: df['rdi'].clip(upper=max_dv)
+        rdi=lambda df: df['rdi'].clip(upper=max_dv / 100)  # From percentage to proportion
     ).query(
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
@@ -265,11 +265,11 @@ def make_plot(food_group, nutrient_group, max_dv):
             )
         ),
         alt.Y('food', title='', axis=alt.Axis(orient='right')),
-        alt.Color('rdi', title="Percent of Daily Value"),
+        alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
         tooltip=[
             alt.Tooltip('food', title='Food'),
             alt.Tooltip('nutrient', title='Nutrient'),
-            alt.Tooltip('rdi', title='RDI'),
+            alt.Tooltip('rdi', title='RDI', format='.1%'),
         ]
     )
     return chart
