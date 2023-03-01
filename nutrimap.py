@@ -248,34 +248,37 @@ max_dv = pn.widgets.IntSlider(
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
 def make_plot(food_group, nutrient_group, max_dv):
     # Load the data
-    df = foods_long # define df
+    df = foods_long  # define df
     df.loc[df['value'] > max_dv, 'value'] = max_dv
     # filter data according to selectors
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
     selected_nutrients = []
-    [selected_nutrients.extend(nutrient_groups[nutrient]) for nutrient in nutrient_group]
-    mask = (df['food'].isin(selected_foods) & (df['nutrient'].isin(selected_nutrients)))
-    df = df.loc[mask] # filter the dataframe
+    [
+        selected_nutrients.extend(nutrient_groups[nutrient])
+        for nutrient in nutrient_group
+    ]
+    mask = df['food'].isin(selected_foods) & (df['nutrient'].isin(selected_nutrients))
+    df = df.loc[mask]  # filter the dataframe
     # create the Altair chart object
     chart = alt.Chart(df).mark_rect().encode(
-        x = alt.X('nutrient', axis=alt.Axis(title = 'Nutrient')),
-        y = alt.Y('food', axis=alt.Axis(title = 'Food')),
-        color = alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),
-        tooltip=alt.Tooltip(['food:O', 'nutrient:O', 'value:Q'])
+        x=alt.X('nutrient', axis=alt.Axis(title='Nutrient')),
+        y=alt.Y('food', axis=alt.Axis(title='Food')),
+        color=alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),
+        tooltip=alt.Tooltip(['food:O', 'nutrient:O', 'value:Q']),
     ).configure_axisY(
-        orient = 'right'
+        orient='right'
     ).configure_axisX(
-        orient = 'top',
-        labelAngle = -45
+        orient='top',
+        labelAngle=-45
     )
     return chart
 
 
 # build the dashboard
-pn.template.FastListTemplate(site='Nutrimap', title='A cure for food label indigestion',
-                                       sidebar=[pn.pane.Markdown("## Settings"),
-                                               food_group,
-                                               nutrient_group,
-                                               max_dv],
-                                       main=[make_plot]).servable()
+pn.template.FastListTemplate(
+    site='Nutrimap',
+    title='A cure for food label indigestion',
+    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv],
+    main=[make_plot],
+).servable()
