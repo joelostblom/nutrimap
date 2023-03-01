@@ -10,7 +10,7 @@ def compute_rdi_proportion(row):
     '''Calculate the proportion of the RDI contained in each nutrient'''
     new_row = pd.Series(dtype=float)
     for col_name in row.index:
-        nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].values[0]
+        nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].to_numpy()[0]
         rdi_proportion = round(100 * row[col_name] / nutrient_rdi, 3)
         # Round to 2 significant digits https://stackoverflow.com/a/48812729/2166823
         new_row.loc[col_name] = rdi_proportion  #
