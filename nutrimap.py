@@ -228,9 +228,9 @@ nutrient_group = pn.widgets.MultiChoice(
 
 # add slider to set maximum DV value, affecting max value of heatmap color range
 max_dv = pn.widgets.IntSlider(
-    name='Maximum Daily Value',
+    name='Cap color scale at this RDI',
     start=0,
-    end=int(max(foods['value'])),
+    end=600,
     value=300,
 )
 
@@ -255,15 +255,17 @@ def make_plot(food_group, nutrient_group, max_dv):
     )
     # Create the Altair chart object
     chart = alt.Chart(filtered_df).mark_rect().encode(
-        x=alt.X('nutrient', axis=alt.Axis(title='Nutrient')),
-        y=alt.Y('food', axis=alt.Axis(title='Food')),
-        color=alt.Color('value', legend=alt.Legend(title="Percent of Daily Value")),
-        tooltip=alt.Tooltip(['food:O', 'nutrient:O', 'value:Q']),
-    ).configure_axisY(
-        orient='right'
-    ).configure_axisX(
-        orient='top',
-        labelAngle=-45
+        alt.X(
+            'nutrient',
+            title='',
+            axis=alt.Axis(
+                orient='top',
+                labelAngle=-45
+            )
+        ),
+        alt.Y('food', title='', axis=alt.Axis(orient='right')),
+        alt.Color('value', title="Percent of Daily Value"),
+        alt.Tooltip(['food:O', 'nutrient:O', 'value:Q']),
     )
     return chart
 
