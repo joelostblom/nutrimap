@@ -1,0 +1,10 @@
+name: nutrimap
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - panel
+  - pandas
+  - pip
+  - pip:
+      - git+https://github.com/altair-viz/altair
