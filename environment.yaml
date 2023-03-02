@@ -5,6 +5,5 @@ channels:
 dependencies:
   - panel
   - pandas
+  - altair
   - pip
-  - pip:
-      - git+https://github.com/altair-viz/altair
