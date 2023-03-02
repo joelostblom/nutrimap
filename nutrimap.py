@@ -4,7 +4,8 @@ import panel as pn
 
 
 # get RDI values
-rdis = pd.read_csv('data/processed/matched_rdi_sr_nih.csv', comment='#')
+url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
+rdis = pd.read_csv(url, comment='#')
 
 def compute_rdi_proportion(row):
     '''Calculate the proportion of the RDI contained in each nutrient'''
@@ -16,8 +17,9 @@ def compute_rdi_proportion(row):
         new_row.loc[col_name] = rdi_proportion  #
     return new_row
 
+url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
 foods = pd.read_csv(
-    'data/processed/foods.csv',
+    url,
     index_col=0
 ).apply(
     compute_rdi_proportion,
