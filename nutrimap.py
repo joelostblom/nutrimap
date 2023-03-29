@@ -27,7 +27,10 @@ foods = pd.read_csv(
 ).apply(
     compute_rdi_proportion,
     axis=1
-).reset_index().melt(
+).reset_index()
+
+foods_long = pd.melt(
+    foods,
     id_vars='food',
     value_name='rdi',
     ignore_index=False
@@ -246,17 +249,15 @@ def get_food_group(food) -> str:
         if food in food_groups.get(k):
             return k
         
-# function for filtering food data by nutrient group
-def filter_nutrient_group(nutrient_group:str):
-    print(nutrient_group)
-    foods_filtered = foods[["food"] + nutrient_groups.get(nutrient_group)].fillna(0)
+# function for filtering selected nutrient columns
+def filter_nutrients(nutrients:list[str]):
+    foods_filtered = foods[["food"] + nutrients].fillna(0)
     foods_filtered['food_group'] = foods_filtered.apply(lambda row: get_food_group(row["food"]), axis=1)
     return foods_filtered
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
-def pca_scatter_2_components(data, foods, nutrients):
-    data = filter_nutrient_group(data)
-    data = data.iloc[data[food].isin(foods)]
+def pca_scatter_2_components(data, nutrients):
+    data = filter_nutrients(nutrients)
     X = data.iloc[:, 1:-1].values
     
     # create scaler object
@@ -326,14 +327,14 @@ def make_plot(food_group, nutrient_group, max_dv):
         for nutrient in nutrient_group
     ]
 
-    filtered_df = foods.assign(
+    filtered_df = foods_long.assign(
         rdi=lambda df: df['rdi'].clip(upper=max_dv / 100)  # From percentage to proportion
     ).query(
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
     # Create the Altair chart object
-    scatter = pca_scatter_2_components(foods, selected_foods, selected_nutrients)
+    scatter = pca_scatter_2_components(filtered_df, selected_nutrients)
     heatmap = create_heatmap(filtered_df)
 
     return alt.vconcat(scatter, heatmap)
