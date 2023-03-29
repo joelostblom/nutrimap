@@ -257,6 +257,7 @@ def filter_nutrients(nutrients:list[str]):
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
 def pca_scatter_2_components(data, nutrients):
+    # TODO: implement filtering by food/food group
     data = filter_nutrients(nutrients)
     X = data.iloc[:, 1:-1].values
     
