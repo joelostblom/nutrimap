@@ -1,6 +1,9 @@
 import altair as alt
 import pandas as pd
 import panel as pn
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA as pca
 
 
 # get RDI values
@@ -237,6 +240,79 @@ max_dv = pn.widgets.IntSlider(
     value=300,
 )
 
+# function to get food group for each food in foods dataframe
+def get_food_group(food) -> str:
+    for k in food_groups:
+        if food in food_groups.get(k):
+            return k
+        
+# function for filtering food data by nutrient group
+def filter_nutrient_group(nutrient_group:str):
+    print(nutrient_group)
+    foods_filtered = foods[["food"] + nutrient_groups.get(nutrient_group)].fillna(0)
+    foods_filtered['food_group'] = foods_filtered.apply(lambda row: get_food_group(row["food"]), axis=1)
+    return foods_filtered
+
+# create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
+def pca_scatter_2_components(data, foods, nutrients):
+    data = filter_nutrient_group(data)
+    data = data.iloc[data[food].isin(foods)]
+    X = data.iloc[:, 1:-1].values
+    
+    # create scaler object
+    scaler = StandardScaler()
+
+    # get mean and standard deviation
+    scaler.fit(X)
+
+    # transform values
+    X_scaled = scaler.transform(X)
+    
+    # reduce filtered data to n dimensions using PCA
+    pca_2 = pca(n_components = 2, random_state = 2023)
+    pca_2.fit(X_scaled)
+    X_pca_2 = pca_2.transform(X_scaled)
+    
+    print("variance explained by all principal components = ", 
+      sum(pca_2.explained_variance_ratio_*100))
+
+    print("variances: ", pca_2.explained_variance_ratio_*100)
+    
+    # convert numpy array to dataframe
+    pca_2_df = pd.DataFrame(X_pca_2, columns=("component_1", "component_2"))
+    pca_2_df['food'] = data["food"]
+    pca_2_df['food_group'] = data["food_group"]
+    
+    chart = alt.Chart(pca_2_df).mark_circle(size=50).encode(
+        x="component_1",
+        y="component_2",
+        color="food_group",
+        tooltip="food"
+    ).interactive()
+    
+    return chart
+
+# create a heatmap chart using filtered data
+def create_heatmap(filtered_df):
+    chart = alt.Chart(filtered_df).mark_rect().encode(
+        alt.X(
+            'nutrient',
+            title='',
+            axis=alt.Axis(
+                orient='top',
+                labelAngle=-45
+            )
+        ),
+        alt.Y('food', title='', axis=alt.Axis(orient='right')),
+        alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
+        tooltip=[
+            alt.Tooltip('food', title='Food'),
+            alt.Tooltip('nutrient', title='Nutrient'),
+            alt.Tooltip('rdi', title='RDI', format='.1%'),
+        ]
+    )
+    return chart
+
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
@@ -257,25 +333,10 @@ def make_plot(food_group, nutrient_group, max_dv):
         '& nutrient.isin(@selected_nutrients)'
     )
     # Create the Altair chart object
-    chart = alt.Chart(filtered_df).mark_rect().encode(
-        alt.X(
-            'nutrient',
-            title='',
-            axis=alt.Axis(
-                orient='top',
-                labelAngle=-45
-            )
-        ),
-        alt.Y('food', title='', axis=alt.Axis(orient='right')),
-        alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
-        tooltip=[
-            alt.Tooltip('food', title='Food'),
-            alt.Tooltip('nutrient', title='Nutrient'),
-            alt.Tooltip('rdi', title='RDI', format='.1%'),
-        ]
-    )
-    return chart
+    scatter = pca_scatter_2_components(foods, selected_foods, selected_nutrients)
+    heatmap = create_heatmap(filtered_df)
 
+    return alt.vconcat(scatter, heatmap)
 
 # Build the dashboard
 pn.template.FastListTemplate(
