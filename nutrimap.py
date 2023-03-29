@@ -274,20 +274,21 @@ def pca_scatter_2_components(data, nutrients):
     pca_2.fit(X_scaled)
     X_pca_2 = pca_2.transform(X_scaled)
     
-    print("variance explained by all principal components = ", 
-      sum(pca_2.explained_variance_ratio_*100))
-
-    print("variances: ", pca_2.explained_variance_ratio_*100)
-    
     # convert numpy array to dataframe
     pca_2_df = pd.DataFrame(X_pca_2, columns=("component_1", "component_2"))
     pca_2_df['food'] = data["food"]
     pca_2_df['food_group'] = data["food_group"]
     
     chart = alt.Chart(pca_2_df).mark_circle(size=50).encode(
-        x="component_1",
-        y="component_2",
-        color="food_group",
+        alt.X("component_1",
+              title="Component 1"
+        ),
+        alt.Y("component_2",
+              title="Component 2"
+        ),
+        alt.Color("food_group",
+                  title="Food Group"
+        ),
         tooltip="food"
     ).interactive()
     
