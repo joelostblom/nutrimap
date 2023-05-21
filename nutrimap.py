@@ -21,16 +21,14 @@ def compute_rdi_proportion(row):
     return new_row
 
 url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
+
 foods = pd.read_csv(
     url,
     index_col=0
 ).apply(
     compute_rdi_proportion,
     axis=1
-).reset_index()
-
-foods_long = pd.melt(
-    foods,
+).reset_index().melt(
     id_vars='food',
     value_name='rdi',
     ignore_index=False
@@ -248,17 +246,14 @@ def get_food_group(food) -> str:
     for k in food_groups:
         if food in food_groups.get(k):
             return k
-        
-# function for filtering selected nutrient columns
-def filter_nutrients(nutrients:list[str]):
-    foods_filtered = foods[["food"] + nutrients].fillna(0)
-    foods_filtered['food_group'] = foods_filtered.apply(lambda row: get_food_group(row["food"]), axis=1)
-    return foods_filtered
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
-def pca_scatter_2_components(data, nutrients):
-    # TODO: implement filtering by food/food group
-    data = filter_nutrients(nutrients)
+def pca_scatter_2_components(data):
+    #TODO: figure out where NaN values are coming from (food names and food group)
+    data = pd.pivot(data, index="food", columns="nutrient").reset_index().dropna().fillna(0)
+    data.columns = data.columns.get_level_values(0)
+    data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
+
     X = data.iloc[:, 1:-1].values
     
     # create scaler object
@@ -329,14 +324,14 @@ def make_plot(food_group, nutrient_group, max_dv):
         for nutrient in nutrient_group
     ]
 
-    filtered_df = foods_long.assign(
+    filtered_df = foods.assign(
         rdi=lambda df: df['rdi'].clip(upper=max_dv / 100)  # From percentage to proportion
     ).query(
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
     # Create the Altair chart object
-    scatter = pca_scatter_2_components(filtered_df, selected_nutrients)
+    scatter = pca_scatter_2_components(filtered_df)
     heatmap = create_heatmap(filtered_df)
 
     return alt.vconcat(scatter, heatmap)
