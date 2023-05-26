@@ -4,6 +4,7 @@ import panel as pn
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
+from scipy.cluster import heirarchy
 
 
 # get RDI values
@@ -311,6 +312,10 @@ def create_heatmap(filtered_df):
     )
     return chart
 
+# perform heirarchical clustering on foods
+def hcluster(filtered_df):
+    #TODO: implement heirarchical clustering
+    return filtered_df
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
