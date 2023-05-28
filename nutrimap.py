@@ -4,7 +4,7 @@ import panel as pn
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
-from scipy.cluster import heirarchy
+from scipy.cluster import hierarchy
 
 
 # get RDI values
@@ -250,8 +250,7 @@ def get_food_group(food) -> str:
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
 def pca_scatter_2_components(data):
-    #TODO: figure out where NaN values are coming from (food names and food group)
-    data = pd.pivot(data, index="food", columns="nutrient").reset_index().dropna().fillna(0)
+    data = pd.pivot(data, index="food", columns="nutrient").reset_index().fillna(0)
     data.columns = data.columns.get_level_values(0)
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
 
@@ -291,8 +290,17 @@ def pca_scatter_2_components(data):
     
     return chart
 
+# perform heirarchical clustering on foods
+def hcluster(filtered_df):
+    #TODO: implement heirarchical clustering
+    #X = filtered_df['rdi']
+    #filtered_df = hierarchy.linkage(X, optimal_ordering = True)
+    return filtered_df
+
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df):
+    filtered_df = hcluster(filtered_df)
+
     chart = alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
             'nutrient',
@@ -311,11 +319,6 @@ def create_heatmap(filtered_df):
         ]
     )
     return chart
-
-# perform heirarchical clustering on foods
-def hcluster(filtered_df):
-    #TODO: implement heirarchical clustering
-    return filtered_df
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
