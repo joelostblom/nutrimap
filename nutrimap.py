@@ -4,7 +4,6 @@ import panel as pn
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
-from scipy.cluster import hierarchy
 
 
 # get RDI values
@@ -290,16 +289,9 @@ def pca_scatter_2_components(data):
     
     return chart
 
-# perform heirarchical clustering on foods
-def hcluster(filtered_df):
-    #TODO: implement heirarchical clustering
-    #X = filtered_df['rdi']
-    #filtered_df = hierarchy.linkage(X, optimal_ordering = True)
-    return filtered_df
 
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df):
-    filtered_df = hcluster(filtered_df)
 
     chart = alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
