@@ -299,23 +299,10 @@ def sort_similar_foods(filtered_df):
     """
     wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index().fillna(0)
     wide_data.columns = wide_data.columns.get_level_values(0)
-    #wide_data['food_group'] = wide_data.apply(lambda row: get_food_group(row["food"]), axis=1)
 
     X = wide_data.iloc[:, 1:len(wide_data.columns) - 1]
 
-    # calculate pairwise distances between observations in n-dimensional space.
-    #y = pdist(X)
-
-    # perform Ward's linkage on a condensed distance matrix.
-    #Z = ward(y)
     Z = hierarchy.linkage(X, optimal_ordering=True)
-
-    # form cluster label from the hierarchical clustering defined by the given linkage matrix
-    # TODO: refine euclidean distance for number of clusters
-    #wardlabel = fcluster(Z, 3, criterion='distance')
-
-    # sets the cluster label (check what cluster each item belongs to)
-    #wide_data["ward"] = wardlabel
 
     # find the optimal order of row indexes according to the clustering algorithm
     optimal_order = hierarchy.leaves_list(Z)
