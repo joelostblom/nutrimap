@@ -300,7 +300,7 @@ def sort_similar_foods(filtered_df):
     wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index().fillna(0)
     wide_data.columns = wide_data.columns.get_level_values(0)
 
-    X = wide_data.iloc[:, 1:len(wide_data.columns) - 1]
+    X = wide_data.iloc[:, 1:]
 
     Z = hierarchy.linkage(X, optimal_ordering=True)
 
