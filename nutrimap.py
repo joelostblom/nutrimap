@@ -4,6 +4,9 @@ import panel as pn
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
+from scipy.cluster import hierarchy 
+from scipy.cluster.hierarchy import ward, median, centroid, weighted, average, complete, single, fcluster
+from scipy.spatial.distance import pdist
 
 
 # get RDI values
@@ -249,7 +252,7 @@ def get_food_group(food) -> str:
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
 def pca_scatter_2_components(data):
-    data = pd.pivot(data, index="food", columns="nutrient").reset_index().fillna(0)
+    data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index().fillna(0)
     data.columns = data.columns.get_level_values(0)
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
 
@@ -289,6 +292,34 @@ def pca_scatter_2_components(data):
     
     return chart
 
+# sort data using hierarchical clustering and optimal leaf-ordering
+def sort_similar_foods(filtered_df):
+    """
+    requires that the data matches the input of create_heatmap function
+    """
+    wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index().fillna(0)
+    wide_data.columns = wide_data.columns.get_level_values(0)
+    #wide_data['food_group'] = wide_data.apply(lambda row: get_food_group(row["food"]), axis=1)
+
+    X = wide_data.iloc[:, 1:len(wide_data.columns) - 1]
+
+    # calculate pairwise distances between observations in n-dimensional space.
+    y = pdist(X)
+
+    # perform Ward's linkage on a condensed distance matrix.
+    Z = ward(y)
+
+    # form cluster label from the hierarchical clustering defined by the given linkage matrix
+    # TODO: refine euclidean distance for number of clusters
+    #wardlabel = fcluster(Z, 3, criterion='distance')
+
+    # sets the cluster label (check what cluster each item belongs to)
+    #wide_data["ward"] = wardlabel
+
+    # find the optimal order of row indexes according to the clustering algorithm
+    optimal_order = hierarchy.leaves_list(Z)
+
+    return optimal_order
 
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df):
@@ -302,7 +333,7 @@ def create_heatmap(filtered_df):
                 labelAngle=-45
             )
         ),
-        alt.Y('food', title='', axis=alt.Axis(orient='right')),
+        alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
         alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
         tooltip=[
             alt.Tooltip('food', title='Food'),
