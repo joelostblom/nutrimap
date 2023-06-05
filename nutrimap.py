@@ -226,7 +226,7 @@ nutrient_groups = dict(
 food_group = pn.widgets.MultiChoice(
     name='Food Groups',
     value=['vegetables', 'grains'],
-    options=list(food_groups.keys()),
+    options=list(food_groups.keys())
 )
 
 # add checkbuttongroup for nutrient groups
@@ -356,7 +356,7 @@ def make_plot(food_group, nutrient_group, max_dv):
     return alt.vconcat(scatter, heatmap)
 
 # Build the dashboard
-pn.template.FastListTemplate(
+pn.template.BootstrapTemplate(
     site='Nutrimap',
     title='A cure for food label indigestion',
     sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv],
