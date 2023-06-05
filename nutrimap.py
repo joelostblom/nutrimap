@@ -304,10 +304,11 @@ def sort_similar_foods(filtered_df):
     X = wide_data.iloc[:, 1:len(wide_data.columns) - 1]
 
     # calculate pairwise distances between observations in n-dimensional space.
-    y = pdist(X)
+    #y = pdist(X)
 
     # perform Ward's linkage on a condensed distance matrix.
-    Z = ward(y)
+    #Z = ward(y)
+    Z = hierarchy.linkage(X, optimal_ordering=True)
 
     # form cluster label from the hierarchical clustering defined by the given linkage matrix
     # TODO: refine euclidean distance for number of clusters
