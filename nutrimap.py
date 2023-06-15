@@ -5,8 +5,6 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
 from scipy.cluster import hierarchy 
-from scipy.cluster.hierarchy import ward, median, centroid, weighted, average, complete, single, fcluster
-from scipy.spatial.distance import pdist
 
 
 # get RDI values
