@@ -26,7 +26,25 @@ url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processe
 foods = pd.read_csv(
     url,
     index_col=0
-).apply(
+)
+
+# fill in some missing values
+foods.loc['Oats', 'Sugar'] = 1.1
+foods.loc['Oats', 'Selenium'] = 28.9
+foods.loc['Oats', 'Vitamin E'] = 0.42
+foods.loc['Oats', 'Vitamin K'] = 2
+foods.loc['Oats', 'beta-Carotene'] = 0
+foods.loc['Oats', 'alpha-Carotene'] = 0
+foods.loc['Oats', 'beta-Cryptoxanthin'] = 0
+foods.loc['Oats', 'Lycopene'] = 0
+foods.loc['Oats', 'Lutein + zeaxanthin'] = 180
+
+foods.loc['Quinoa, uncooked', 'Sugar'] = 6.1
+foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
+foods.loc['Buckwheat', 'Sugar'] = 1.9
+foods.loc['Millet, raw', 'Sugar'] = 1.5
+
+foods.apply(
     compute_rdi_proportion,
     axis=1
 ).reset_index().melt(
@@ -36,6 +54,8 @@ foods = pd.read_csv(
 ).rename(
     columns={'variable': 'nutrient'}
 )
+
+print(foods.head())
 
 food_groups = {
     # TODO add corn on the cob as veggie
