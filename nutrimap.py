@@ -44,7 +44,7 @@ foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
 foods.loc['Buckwheat', 'Sugar'] = 1.9
 foods.loc['Millet, raw', 'Sugar'] = 1.5
 
-foods.apply(
+foods = foods.apply(
     compute_rdi_proportion,
     axis=1
 ).reset_index().melt(
@@ -54,8 +54,6 @@ foods.apply(
 ).rename(
     columns={'variable': 'nutrient'}
 )
-
-print(foods.head())
 
 food_groups = {
     # TODO add corn on the cob as veggie
@@ -270,9 +268,13 @@ def get_food_group(food) -> str:
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
 def pca_scatter_2_components(data):
-    data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index().fillna(0)
+    data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index()
     data.columns = data.columns.get_level_values(0)
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
+
+    # fill NA values with column mean
+    for col in data.columns[data.isnull().any(axis=0)]:
+        data[col].fillna(data[col].mean(),inplace=True)
 
     X = data.iloc[:, 1:-1].values
     
