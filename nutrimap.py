@@ -265,6 +265,13 @@ def get_food_group(food) -> str:
     for k in food_groups:
         if food in food_groups.get(k):
             return k
+        
+# fill NA values of wide-form foods data with column mean value
+def fill_na_mean(data):
+    for col in data.columns[data.isnull().any(axis=0)]:
+        data[col].fillna(data[col].mean(),inplace=True)
+    
+    return data
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
 def pca_scatter_2_components(data):
@@ -273,8 +280,7 @@ def pca_scatter_2_components(data):
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
 
     # fill NA values with column mean
-    for col in data.columns[data.isnull().any(axis=0)]:
-        data[col].fillna(data[col].mean(),inplace=True)
+    data = fill_na_mean(data)
 
     X = data.iloc[:, 1:-1].values
     
@@ -317,17 +323,21 @@ def sort_similar_foods(filtered_df):
     """
     requires that the data matches the input of create_heatmap function
     """
-    wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index().fillna(0)
+    wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index()
     wide_data.columns = wide_data.columns.get_level_values(0)
+    
+     # fill NA values with column mean
+    wide_data = fill_na_mean(wide_data)
 
     X = wide_data.iloc[:, 1:]
 
-    Z = hierarchy.linkage(X, optimal_ordering=True)
+    # using average method
+    Z = hierarchy.linkage(X, method="average", optimal_ordering=True)
 
     # find the optimal order of row indexes according to the clustering algorithm
     optimal_order = hierarchy.leaves_list(Z)
 
-    return optimal_order
+    return wide_data.loc[optimal_order, 'food'].tolist()
 
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df):
