@@ -4,6 +4,7 @@ import panel as pn
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
+from scipy.cluster import hierarchy 
 
 
 # get RDI values
@@ -25,7 +26,25 @@ url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processe
 foods = pd.read_csv(
     url,
     index_col=0
-).apply(
+)
+
+# fill in some missing values
+foods.loc['Oats', 'Sugar'] = 1.1
+foods.loc['Oats', 'Selenium'] = 28.9
+foods.loc['Oats', 'Vitamin E'] = 0.42
+foods.loc['Oats', 'Vitamin K'] = 2
+foods.loc['Oats', 'beta-Carotene'] = 0
+foods.loc['Oats', 'alpha-Carotene'] = 0
+foods.loc['Oats', 'beta-Cryptoxanthin'] = 0
+foods.loc['Oats', 'Lycopene'] = 0
+foods.loc['Oats', 'Lutein + zeaxanthin'] = 180
+
+foods.loc['Quinoa, uncooked', 'Sugar'] = 6.1
+foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
+foods.loc['Buckwheat', 'Sugar'] = 1.9
+foods.loc['Millet, raw', 'Sugar'] = 1.5
+
+foods = foods.apply(
     compute_rdi_proportion,
     axis=1
 ).reset_index().melt(
@@ -246,12 +265,22 @@ def get_food_group(food) -> str:
     for k in food_groups:
         if food in food_groups.get(k):
             return k
+        
+# fill NA values of wide-form foods data with column mean value
+def fill_na_mean(data):
+    for col in data.columns[data.isnull().any(axis=0)]:
+        data[col].fillna(data[col].mean(),inplace=True)
+    
+    return data
 
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
 def pca_scatter_2_components(data):
-    data = pd.pivot(data, index="food", columns="nutrient").reset_index().fillna(0)
+    data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index()
     data.columns = data.columns.get_level_values(0)
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
+
+    # fill NA values with column mean
+    data = fill_na_mean(data)
 
     X = data.iloc[:, 1:-1].values
     
@@ -289,6 +318,26 @@ def pca_scatter_2_components(data):
     
     return chart
 
+# sort data using hierarchical clustering and optimal leaf-ordering
+def sort_similar_foods(filtered_df):
+    """
+    requires that the data matches the input of create_heatmap function
+    """
+    wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index()
+    wide_data.columns = wide_data.columns.get_level_values(0)
+    
+     # fill NA values with column mean
+    wide_data = fill_na_mean(wide_data)
+
+    X = wide_data.iloc[:, 1:]
+
+    # using average method
+    Z = hierarchy.linkage(X, method="average", optimal_ordering=True)
+
+    # find the optimal order of row indexes according to the clustering algorithm
+    optimal_order = hierarchy.leaves_list(Z)
+
+    return wide_data.loc[optimal_order, 'food'].tolist()
 
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df):
@@ -302,7 +351,7 @@ def create_heatmap(filtered_df):
                 labelAngle=-45
             )
         ),
-        alt.Y('food', title='', axis=alt.Axis(orient='right')),
+        alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
         alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
         tooltip=[
             alt.Tooltip('food', title='Food'),
@@ -337,7 +386,7 @@ def make_plot(food_group, nutrient_group, max_dv):
     return alt.vconcat(scatter, heatmap)
 
 # Build the dashboard
-pn.template.FastListTemplate(
+pn.template.BootstrapTemplate(
     site='Nutrimap',
     title='A cure for food label indigestion',
     sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv],
