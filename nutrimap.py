@@ -242,7 +242,7 @@ nutrient_groups = dict(
 food_group = pn.widgets.MultiChoice(
     name='Food Groups',
     value=['vegetables', 'grains'],
-    options=list(food_groups.keys())
+    options=list(food_groups.keys()),
 )
 
 # add checkbuttongroup for nutrient groups
