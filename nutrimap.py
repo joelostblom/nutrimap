@@ -341,6 +341,7 @@ def sort_similar_foods(filtered_df):
 
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df):
+    #TODO: make heatmap respond to selections in scatter plot
 
     chart = alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
@@ -383,12 +384,13 @@ def make_plot(food_group, nutrient_group, max_dv):
     scatter = pca_scatter_2_components(filtered_df)
     heatmap = create_heatmap(filtered_df)
 
+    # TODO: change this so that heatmap is in main panel, scatter is in sidebar
     return alt.vconcat(scatter, heatmap)
 
 # Build the dashboard
 pn.template.BootstrapTemplate(
     site='Nutrimap',
     title='A cure for food label indigestion',
-    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv],
+    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv], #TODO: add scatter
     main=[make_plot],
 ).servable()
