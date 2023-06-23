@@ -1,6 +1,7 @@
 import altair as alt
 import pandas as pd
 import panel as pn
+pn.extension('vega')
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
@@ -314,7 +315,7 @@ def pca_scatter_2_components(data):
                   title="Food Group"
         ),
         tooltip="food"
-    ).interactive()
+    ).add_params(brush)
     
     return chart
 
@@ -340,10 +341,17 @@ def sort_similar_foods(filtered_df):
     return wide_data.loc[optimal_order, 'food'].tolist()
 
 # create a heatmap chart using filtered data
-def create_heatmap(filtered_df):
-    #TODO: make heatmap respond to selections in scatter plot
+def create_heatmap(filtered_df, selection):
+    if not selection:
+        return '## No selection'
+    range_predicate = {
+        'and': [{
+            'field': key,
+            'range': [selection[key][0], selection[key][1]]
+        } for key in selection]
+    }
 
-    chart = alt.Chart(filtered_df).mark_rect().encode(
+    return alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
             'nutrient',
             title='',
@@ -359,8 +367,12 @@ def create_heatmap(filtered_df):
             alt.Tooltip('nutrient', title='Nutrient'),
             alt.Tooltip('rdi', title='RDI', format='.1%'),
         ]
+    ).transform_filter(
+        range_predicate
     )
-    return chart
+
+# selects interval over scatterplot for filtering heatmap
+brush = alt.selection_interval(name='brush')
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
@@ -380,12 +392,13 @@ def make_plot(food_group, nutrient_group, max_dv):
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
+
     # Create the Altair chart object
-    scatter = pca_scatter_2_components(filtered_df)
-    heatmap = create_heatmap(filtered_df)
+    scatter = pn.pane.Vega(pca_scatter_2_components(filtered_df), debounce = 10)
+    #heatmap = create_heatmap(filtered_df, selection)
 
     # TODO: change this so that heatmap is in main panel, scatter is in sidebar
-    return alt.vconcat(scatter, heatmap)
+    return pn.Column(scatter, pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush))
 
 # Build the dashboard
 pn.template.BootstrapTemplate(
