@@ -274,8 +274,11 @@ def fill_na_mean(data):
     
     return data
 
+# selects interval over scatterplot for filtering heatmap
+#brush = alt.selection_interval(fields = ["food"])
+
 # create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
-def pca_scatter_2_components(data):
+def pca_2_components(data):
     data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index()
     data.columns = data.columns.get_level_values(0)
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
@@ -303,8 +306,14 @@ def pca_scatter_2_components(data):
     pca_2_df = pd.DataFrame(X_pca_2, columns=("component_1", "component_2"))
     pca_2_df['food'] = data["food"]
     pca_2_df['food_group'] = data["food_group"]
+
+    return pca_2_df
+
+def make_scatter(pca_data):
     
-    chart = alt.Chart(pca_2_df).mark_circle(size=50).encode(
+    brush = alt.selection_interval(name = "brush")
+
+    chart = alt.Chart(pca_data).mark_circle(size=50).encode(
         alt.X("component_1",
               title="Component 1"
         ),
@@ -314,10 +323,13 @@ def pca_scatter_2_components(data):
         alt.Color("food_group",
                   title="Food Group"
         ),
+        # color = alt.condition(brush, "food_group", alt.value("lightgray")), # color selected points only
         tooltip="food"
     ).add_params(brush)
-    
-    return chart
+
+    scatter = pn.pane.Vega(chart, debounce = 10)
+
+    return scatter
 
 # sort data using hierarchical clustering and optimal leaf-ordering
 def sort_similar_foods(filtered_df):
@@ -342,14 +354,18 @@ def sort_similar_foods(filtered_df):
 
 # create a heatmap chart using filtered data
 def create_heatmap(filtered_df, selection):
-    if not selection:
-        return '## No selection'
-    range_predicate = {
-        'and': [{
-            'field': key,
-            'range': [selection[key][0], selection[key][1]]
-        } for key in selection]
-    }
+
+    pca_df = pca_2_components(filtered_df)
+
+    if selection:
+        pca_df = pca_df[(pca_df["component_1"] <= max(selection["component_1"])) & 
+                        (pca_df["component_1"] >= min(selection["component_1"])) & 
+                        (pca_df["component_2"] <= max(selection["component_2"])) &
+                        (pca_df["component_2"] >= min(selection["component_2"]))]
+    
+    foods_list = pca_df["food"].values.tolist()
+
+    filtered_df = filtered_df[filtered_df["food"].isin(foods_list)]
 
     return alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
@@ -367,12 +383,7 @@ def create_heatmap(filtered_df, selection):
             alt.Tooltip('nutrient', title='Nutrient'),
             alt.Tooltip('rdi', title='RDI', format='.1%'),
         ]
-    ).transform_filter(
-        range_predicate
     )
-
-# selects interval over scatterplot for filtering heatmap
-brush = alt.selection_interval(name='brush')
 
 # tell panel to reload chart when parameters change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
@@ -392,9 +403,10 @@ def make_plot(food_group, nutrient_group, max_dv):
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
+    pca_data = pca_2_components(filtered_df)
 
     # Create the Altair chart object
-    scatter = pn.pane.Vega(pca_scatter_2_components(filtered_df), debounce = 10)
+    scatter = make_scatter(pca_data)
     #heatmap = create_heatmap(filtered_df, selection)
 
     # TODO: change this so that heatmap is in main panel, scatter is in sidebar
