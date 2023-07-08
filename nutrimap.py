@@ -358,10 +358,8 @@ def create_heatmap(filtered_df, selection):
     pca_df = pca_2_components(filtered_df)
 
     if selection:
-        pca_df = pca_df[(pca_df["component_1"] <= max(selection["component_1"])) & 
-                        (pca_df["component_1"] >= min(selection["component_1"])) & 
-                        (pca_df["component_2"] <= max(selection["component_2"])) &
-                        (pca_df["component_2"] >= min(selection["component_2"]))]
+        pca_df = pca_df[(pca_df["component_1"].between(min(selection["component_1"]), max(selection["component_1"]))) & 
+                        (pca_df["component_2"].between(min(selection["component_2"]), max(selection["component_2"])))]
 
     filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"])]
 
