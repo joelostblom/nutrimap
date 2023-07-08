@@ -362,10 +362,8 @@ def create_heatmap(filtered_df, selection):
                         (pca_df["component_1"] >= min(selection["component_1"])) & 
                         (pca_df["component_2"] <= max(selection["component_2"])) &
                         (pca_df["component_2"] >= min(selection["component_2"]))]
-    
-    foods_list = pca_df["food"].values.tolist()
 
-    filtered_df = filtered_df[filtered_df["food"].isin(foods_list)]
+    filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"])]
 
     return alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
