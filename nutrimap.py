@@ -277,7 +277,7 @@ def fill_na_mean(data):
 # selects interval over scatterplot for filtering heatmap
 #brush = alt.selection_interval(fields = ["food"])
 
-# create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
+# perform PCA to reduce dataframe to 2 dimensions
 def pca_2_components(data):
     data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index()
     data.columns = data.columns.get_level_values(0)
@@ -353,15 +353,14 @@ def sort_similar_foods(filtered_df):
     return wide_data.loc[optimal_order, 'food'].tolist()
 
 # create a heatmap chart using filtered data
-def create_heatmap(filtered_df, selection):
+async def create_heatmap(filtered_df, selection):
 
     pca_df = pca_2_components(filtered_df)
 
     if selection:
         pca_df = pca_df[(pca_df["component_1"].between(min(selection["component_1"]), max(selection["component_1"]))) & 
                         (pca_df["component_2"].between(min(selection["component_2"]), max(selection["component_2"])))]
-
-    filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"])]
+        filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"])]
 
     return alt.Chart(filtered_df).mark_rect().encode(
         alt.X(
@@ -399,14 +398,14 @@ def make_plot(food_group, nutrient_group, max_dv):
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
-    pca_data = pca_2_components(filtered_df)
 
     # Create the Altair chart object
-    scatter = make_scatter(pca_data)
-    #heatmap = create_heatmap(filtered_df, selection)
+    scatter = make_scatter(pca_2_components(filtered_df))
+
+    heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
     # TODO: change this so that heatmap is in main panel, scatter is in sidebar
-    return pn.Column(scatter, pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush))
+    return pn.Column(scatter, heatmap)
 
 # Build the dashboard
 pn.template.BootstrapTemplate(
