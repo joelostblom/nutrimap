@@ -313,7 +313,7 @@ def make_scatter(pca_data):
     
     brush = alt.selection_interval(name = "brush")
 
-    chart = alt.Chart(pca_data).mark_circle(size=50).encode(
+    scatter = alt.Chart(pca_data).mark_circle(size=50).encode(
         alt.X("component_1",
               title="Component 1"
         ),
@@ -327,9 +327,7 @@ def make_scatter(pca_data):
         tooltip="food"
     ).add_params(brush)
 
-    scatter = pn.pane.Vega(chart, debounce = 10)
-
-    return scatter
+    return pn.pane.Vega(scatter)
 
 # sort data using hierarchical clustering and optimal leaf-ordering
 def sort_similar_foods(filtered_df):
@@ -342,7 +340,7 @@ def sort_similar_foods(filtered_df):
 
     wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index()
     wide_data.columns = wide_data.columns.get_level_values(0)
-    
+
      # fill NA values with column mean
     wide_data = fill_na_mean(wide_data)
 
@@ -360,9 +358,12 @@ def sort_similar_foods(filtered_df):
 def create_heatmap(filtered_df, selection):
     pca_df = pca_2_components(filtered_df)
 
+    # Inlclude only food items selected in the scatter plot
     if selection:
-        pca_df = pca_df[(pca_df["component_1"].between(min(selection["component_1"]), max(selection["component_1"]))) & 
-                        (pca_df["component_2"].between(min(selection["component_2"]), max(selection["component_2"])))]
+        pca_df = pca_df[
+            pca_df["component_1"].between(selection["component_1"][0], selection["component_1"][1])
+            & pca_df["component_2"].between(selection["component_2"][0], selection["component_2"][1])
+        ]
         filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"].unique())]
 
     # No need to create a chart if there are no points selected
@@ -390,7 +391,7 @@ def create_heatmap(filtered_df, selection):
 
 # Re-filter the dataframe and re-create the charts when the eidget values change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
-def make_plot(food_group, nutrient_group, max_dv):
+def update_charts(food_group, nutrient_group, max_dv):
     # Find all the values of each selected groups (e.g. all the food names for type "vegetable")
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
@@ -407,9 +408,9 @@ def make_plot(food_group, nutrient_group, max_dv):
         '& nutrient.isin(@selected_nutrients)'
     )
 
-    # Create the Altair chart object
+    # Create the Altair charts
     scatter = make_scatter(pca_2_components(filtered_df))
-
+    # Set the heatmap up to listen to the selection in the scatter plot
     heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
     # TODO: change this so that heatmap is in main panel, scatter is in sidebar
@@ -420,5 +421,5 @@ pn.template.BootstrapTemplate(
     site='Nutrimap',
     title='A cure for food label indigestion',
     sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv], #TODO: add scatter
-    main=[make_plot],
+    main=[update_charts],
 ).servable()
