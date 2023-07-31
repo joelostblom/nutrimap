@@ -357,8 +357,7 @@ def sort_similar_foods(filtered_df):
     return wide_data.loc[optimal_order, 'food'].tolist()
 
 # create a heatmap chart using filtered data
-async def create_heatmap(filtered_df, selection):
-
+def create_heatmap(filtered_df, selection):
     pca_df = pca_2_components(filtered_df)
 
     if selection:
@@ -366,28 +365,30 @@ async def create_heatmap(filtered_df, selection):
                         (pca_df["component_2"].between(min(selection["component_2"]), max(selection["component_2"])))]
         filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"])]
 
-    return alt.Chart(filtered_df).mark_rect().encode(
-        alt.X(
-            'nutrient',
-            title='',
-            axis=alt.Axis(
-                orient='top',
-                labelAngle=-45
-            )
-        ),
-        alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
-        alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
-        tooltip=[
-            alt.Tooltip('food', title='Food'),
-            alt.Tooltip('nutrient', title='Nutrient'),
-            alt.Tooltip('rdi', title='RDI', format='.1%'),
     # No need to create a chart if there are no points selected
     if filtered_df.shape[0] == 0:
         return None
-        ]
-    )
+    else:
+        heatmap = alt.Chart(filtered_df).mark_rect().encode(
+            alt.X(
+                'nutrient',
+                title='',
+                axis=alt.Axis(
+                    orient='top',
+                    labelAngle=-45
+                )
+            ),
+            alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
+            alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
+            tooltip=[
+                alt.Tooltip('food', title='Food'),
+                alt.Tooltip('nutrient', title='Nutrient'),
+                alt.Tooltip('rdi', title='RDI', format='.1%'),
+            ]
+        )
+        return pn.pane.Vega(heatmap)
 
-# tell panel to reload chart when parameters change
+# Re-filter the dataframe and re-create the charts when the eidget values change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
 def make_plot(food_group, nutrient_group, max_dv):
     # Find all the values of each selected groups (e.g. all the food names for type "vegetable")
