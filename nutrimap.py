@@ -363,7 +363,7 @@ def create_heatmap(filtered_df, selection):
     if selection:
         pca_df = pca_df[(pca_df["component_1"].between(min(selection["component_1"]), max(selection["component_1"]))) & 
                         (pca_df["component_2"].between(min(selection["component_2"]), max(selection["component_2"])))]
-        filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"])]
+        filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"].unique())]
 
     # No need to create a chart if there are no points selected
     if filtered_df.shape[0] == 0:
