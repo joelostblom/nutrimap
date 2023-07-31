@@ -336,6 +336,10 @@ def sort_similar_foods(filtered_df):
     """
     requires that the data matches the input of create_heatmap function
     """
+    # No sorting needed if there are less than 2 data points
+    if filtered_df['food'].nunique() < 2:
+        return []
+
     wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index()
     wide_data.columns = wide_data.columns.get_level_values(0)
     
@@ -377,6 +381,9 @@ async def create_heatmap(filtered_df, selection):
             alt.Tooltip('food', title='Food'),
             alt.Tooltip('nutrient', title='Nutrient'),
             alt.Tooltip('rdi', title='RDI', format='.1%'),
+    # No need to create a chart if there are no points selected
+    if filtered_df.shape[0] == 0:
+        return None
         ]
     )
 
