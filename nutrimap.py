@@ -388,6 +388,11 @@ def create_heatmap(filtered_df, selection):
             ]
         )
         return pn.pane.Vega(heatmap)
+    
+template = pn.template.BootstrapTemplate(site='Nutrimap',
+    title='A cure for food label indigestion',
+    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv]
+    )
 
 # Re-filter the dataframe and re-create the charts when the eidget values change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
@@ -409,17 +414,16 @@ def update_charts(food_group, nutrient_group, max_dv):
     )
 
     # Create the Altair charts
-    scatter = make_scatter(pca_2_components(filtered_df))
+    pca_data = pca_2_components(filtered_df)
+    scatter = make_scatter(pca_data)
     # Set the heatmap up to listen to the selection in the scatter plot
     heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
-    # TODO: change this so that heatmap is in main panel, scatter is in sidebar
-    return pn.Column(scatter, heatmap)
+    # TODO: make scatter plot update properly (out of sync with filtering)
+    template.sidebar.extend(scatter)
 
-# Build the dashboard
-pn.template.BootstrapTemplate(
-    site='Nutrimap',
-    title='A cure for food label indigestion',
-    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv], #TODO: add scatter
-    main=[update_charts],
-).servable()
+    return pn.Column(heatmap)
+
+template.main.append(update_charts)
+
+template.servable()
