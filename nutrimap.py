@@ -422,7 +422,7 @@ def update_charts(food_group, nutrient_group, max_dv):
     # TODO: make scatter plot update properly (out of sync with filtering)
     template.sidebar.extend(scatter)
 
-    return pn.Column(heatmap)
+    return pn.Column(heatmap, pn.Column(scatter, visible=False))
 
 template.main.append(update_charts)
 
