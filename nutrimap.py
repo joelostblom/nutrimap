@@ -45,28 +45,38 @@ foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
 foods.loc['Buckwheat', 'Sugar'] = 1.9
 foods.loc['Millet, raw', 'Sugar'] = 1.5
 
-nutrient_values = foods.reset_index().melt(
-    id_vars='food',
-    value_name='amount',
-    ignore_index=False
-).rename(
-    columns={'variable': 'nutrient'}
-)
+def generate_foods_dataframe(foods):
+    # pivot the nutrient amounts
+    nutrient_values = foods.reset_index().melt(
+        id_vars='food',
+        value_name='amount',
+        ignore_index=False
+    ).rename(
+        columns={'variable': 'nutrient'}
+    )
 
-foods = foods.apply(
-    compute_rdi_proportion,
-    axis=1
-).reset_index().melt(
-    id_vars='food',
-    value_name='rdi',
-    ignore_index=False
-).rename(
-    columns={'variable': 'nutrient'}
-)
+    # pivot the rdis
+    foods = foods.apply(
+        compute_rdi_proportion,
+        axis=1
+    ).reset_index().melt(
+        id_vars='food',
+        value_name='rdi',
+        ignore_index=False
+    ).rename(
+        columns={'variable': 'nutrient'}
+    )
 
-# combine nutrient amounts into dataframe containing rdis
-foods = pd.merge(foods, nutrient_values, on=['food', 'nutrient'], how='left')
+    # combine nutrient amounts into dataframe containing rdis
+    foods = pd.merge(foods, nutrient_values, on=['food', 'nutrient'], how='left')
 
+    # merge the nutrient units, select columns to keep, and Unit rename column
+    foods = foods.merge(rdis,left_on='nutrient', right_on='MatchedNutrient')[['food', 'nutrient', 'rdi', 'amount', 'Unit']]
+    foods = foods.rename(columns={'Unit':'unit'})
+
+    return foods
+
+foods = generate_foods_dataframe(foods)
 
 food_groups = {
     # TODO add corn on the cob as veggie
@@ -397,8 +407,8 @@ def create_heatmap(filtered_df, selection):
                 alt.Tooltip('food', title='Food'),
                 alt.Tooltip('nutrient', title='Nutrient'),
                 alt.Tooltip('rdi', title='RDI', format='.1%'),
-                # TODO: add units to amount
-                alt.Tooltip('amount', title='Amount', format='.2f')
+                alt.Tooltip('amount', title='Amount', format='.2f'),
+                alt.Tooltip('unit', title='Unit')
             ]
         )
         return pn.pane.Vega(heatmap)
