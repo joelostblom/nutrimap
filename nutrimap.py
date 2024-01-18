@@ -45,6 +45,14 @@ foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
 foods.loc['Buckwheat', 'Sugar'] = 1.9
 foods.loc['Millet, raw', 'Sugar'] = 1.5
 
+nutrient_values = foods.reset_index().melt(
+    id_vars='food',
+    value_name='amount',
+    ignore_index=False
+).rename(
+    columns={'variable': 'nutrient'}
+)
+
 foods = foods.apply(
     compute_rdi_proportion,
     axis=1
@@ -55,6 +63,10 @@ foods = foods.apply(
 ).rename(
     columns={'variable': 'nutrient'}
 )
+
+# combine nutrient amounts into dataframe containing rdis
+foods = pd.merge(foods, nutrient_values, on=['food', 'nutrient'], how='left')
+
 
 food_groups = {
     # TODO add corn on the cob as veggie
@@ -385,6 +397,8 @@ def create_heatmap(filtered_df, selection):
                 alt.Tooltip('food', title='Food'),
                 alt.Tooltip('nutrient', title='Nutrient'),
                 alt.Tooltip('rdi', title='RDI', format='.1%'),
+                # TODO: add units to amount
+                alt.Tooltip('amount', title='Amount', format='.2f')
             ]
         )
         return pn.pane.Vega(heatmap)
@@ -419,7 +433,6 @@ def update_charts(food_group, nutrient_group, max_dv):
     # Set the heatmap up to listen to the selection in the scatter plot
     heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
-    # TODO: make scatter plot update properly (out of sync with filtering)
     template.sidebar.extend(scatter)
 
     return pn.Column(heatmap, pn.Column(scatter, visible=False))
