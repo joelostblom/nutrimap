@@ -301,20 +301,22 @@ def pca_2_components(data):
     return pca_2_df
 
 def make_scatter(pca_data):
-    
+
     brush = alt.selection_interval(name = "brush")
 
-    scatter = alt.Chart(pca_data).mark_circle(size=50).encode(
-        alt.X("component_1",
-              title="Component 1"
-        ),
-        alt.Y("component_2",
-              title="Component 2"
-        ),
-        alt.Color("food_group",
-                  title="Food Group"
-        ),
-        # color = alt.condition(brush, "food_group", alt.value("lightgray")), # color selected points only
+    scatter = alt.Chart(
+        pca_data,
+        width=200,
+        height=200,
+        title=alt.Title(
+            ' ',
+            subtitle="Food similarity (drag to select)",
+            anchor='start',
+        )
+    ).mark_circle(size=50).encode(
+        alt.X("component_1", title="").axis(domain=False, ticks=False, labels=False),
+        alt.Y("component_2", title="").axis(domain=False, ticks=False, labels=False),
+        color = alt.condition(brush, alt.Color("food_group:N", title=""), alt.value("lightgray")),
         tooltip="food"
     ).add_params(brush)
 
