@@ -1,35 +1,21 @@
 import altair as alt
 import pandas as pd
 import panel as pn
-pn.extension('vega')
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
 from scipy.cluster import hierarchy 
 
+pn.extension('vega')
 
-# get RDI values
-url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
-rdis = pd.read_csv(url, comment='#')
+# Read RDI and food data
+rdi_url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
+rdis = pd.read_csv(rdi_url, comment='#')
 
-def compute_rdi_proportion(row):
-    '''Calculate the proportion of the RDI contained in each nutrient'''
-    new_row = pd.Series(dtype=float)
-    for col_name in row.index:
-        nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].to_numpy()[0]
-        rdi_proportion = round(row[col_name] / nutrient_rdi, 3)
-        # Round to 2 significant digits https://stackoverflow.com/a/48812729/2166823
-        new_row.loc[col_name] = rdi_proportion  #
-    return new_row
+food_url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
+foods = pd.read_csv(food_url, index_col=0)
 
-url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
-
-foods = pd.read_csv(
-    url,
-    index_col=0
-)
-
-# fill in some missing values
+# Fill in some missing values via manual lookups
 foods.loc['Oats', 'Sugar'] = 1.1
 foods.loc['Oats', 'Selenium'] = 28.9
 foods.loc['Oats', 'Vitamin E'] = 0.42
@@ -45,38 +31,21 @@ foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
 foods.loc['Buckwheat', 'Sugar'] = 1.9
 foods.loc['Millet, raw', 'Sugar'] = 1.5
 
-def generate_foods_dataframe(foods):
-    # pivot the nutrient amounts
-    nutrient_values = foods.reset_index().melt(
-        id_vars='food',
-        value_name='amount',
-        ignore_index=False
-    ).rename(
-        columns={'variable': 'nutrient'}
-    )
-
-    # pivot the rdis
-    foods = foods.apply(
-        compute_rdi_proportion,
-        axis=1
-    ).reset_index().melt(
-        id_vars='food',
-        value_name='rdi',
-        ignore_index=False
-    ).rename(
-        columns={'variable': 'nutrient'}
-    )
-
-    # combine nutrient amounts into dataframe containing rdis
-    foods = pd.merge(foods, nutrient_values, on=['food', 'nutrient'], how='left')
-
-    # merge the nutrient units, select columns to keep, and Unit rename column
-    foods = foods.merge(rdis,left_on='nutrient', right_on='MatchedNutrient')[['food', 'nutrient', 'rdi', 'amount', 'Unit']]
-    foods = foods.rename(columns={'Unit':'unit'})
-
-    return foods
-
-foods = generate_foods_dataframe(foods)
+# Add RDI to the foods df
+foods = foods.reset_index().melt(
+    id_vars='food',
+    value_name='amount',
+    ignore_index=False
+).rename(
+    columns={'variable': 'nutrient'}
+).assign(
+    unit=lambda df: df['nutrient'].map(rdis.set_index('MatchedNutrient')['Unit']),
+    rdi_max=lambda df: df['nutrient'].map(rdis.set_index('MatchedNutrient')['Amount']),
+    # Reassign rdi as a proportion instead
+    rdi=lambda df: df['amount'] / df['rdi_max']
+).drop(
+    columns='rdi_max'
+)
 
 food_groups = {
     # TODO add corn on the cob as veggie
