@@ -1,35 +1,21 @@
 import altair as alt
 import pandas as pd
 import panel as pn
-pn.extension('vega')
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
 from scipy.cluster import hierarchy 
 
+pn.extension('vega')
 
-# get RDI values
-url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
-rdis = pd.read_csv(url, comment='#')
+# Read RDI and food data
+rdi_url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
+rdis = pd.read_csv(rdi_url, comment='#')
 
-def compute_rdi_proportion(row):
-    '''Calculate the proportion of the RDI contained in each nutrient'''
-    new_row = pd.Series(dtype=float)
-    for col_name in row.index:
-        nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].to_numpy()[0]
-        rdi_proportion = round(row[col_name] / nutrient_rdi, 3)
-        # Round to 2 significant digits https://stackoverflow.com/a/48812729/2166823
-        new_row.loc[col_name] = rdi_proportion  #
-    return new_row
+food_url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
+foods = pd.read_csv(food_url, index_col=0)
 
-url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
-
-foods = pd.read_csv(
-    url,
-    index_col=0
-)
-
-# fill in some missing values
+# Fill in some missing values via manual lookups
 foods.loc['Oats', 'Sugar'] = 1.1
 foods.loc['Oats', 'Selenium'] = 28.9
 foods.loc['Oats', 'Vitamin E'] = 0.42
@@ -45,15 +31,20 @@ foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
 foods.loc['Buckwheat', 'Sugar'] = 1.9
 foods.loc['Millet, raw', 'Sugar'] = 1.5
 
-foods = foods.apply(
-    compute_rdi_proportion,
-    axis=1
-).reset_index().melt(
+# Add RDI to the foods df
+foods = foods.reset_index().melt(
     id_vars='food',
-    value_name='rdi',
+    value_name='amount',
     ignore_index=False
 ).rename(
     columns={'variable': 'nutrient'}
+).assign(
+    unit=lambda df: df['nutrient'].map(rdis.set_index('MatchedNutrient')['Unit']),
+    rdi_max=lambda df: df['nutrient'].map(rdis.set_index('MatchedNutrient')['Amount']),
+    # Reassign rdi as a proportion instead
+    rdi=lambda df: df['amount'] / df['rdi_max']
+).drop(
+    columns='rdi_max'
 )
 
 food_groups = {
@@ -310,20 +301,22 @@ def pca_2_components(data):
     return pca_2_df
 
 def make_scatter(pca_data):
-    
+
     brush = alt.selection_interval(name = "brush")
 
-    scatter = alt.Chart(pca_data).mark_circle(size=50).encode(
-        alt.X("component_1",
-              title="Component 1"
-        ),
-        alt.Y("component_2",
-              title="Component 2"
-        ),
-        alt.Color("food_group",
-                  title="Food Group"
-        ),
-        # color = alt.condition(brush, "food_group", alt.value("lightgray")), # color selected points only
+    scatter = alt.Chart(
+        pca_data,
+        width=200,
+        height=200,
+        title=alt.Title(
+            ' ',
+            subtitle="Food similarity (drag to select)",
+            anchor='start',
+        )
+    ).mark_circle(size=50).encode(
+        alt.X("component_1", title="").axis(domain=False, ticks=False, labels=False),
+        alt.Y("component_2", title="").axis(domain=False, ticks=False, labels=False),
+        color = alt.condition(brush, alt.Color("food_group:N", title=""), alt.value("lightgray")),
         tooltip="food"
     ).add_params(brush)
 
@@ -370,7 +363,9 @@ def create_heatmap(filtered_df, selection):
     if filtered_df.shape[0] == 0:
         return None
     else:
-        heatmap = alt.Chart(filtered_df).mark_rect().encode(
+        heatmap = alt.Chart(filtered_df).mark_rect().transform_calculate(
+            tooltip_amount_and_unit = "round(100 * datum.amount) / 100 + ' ' + datum.unit"
+        ).encode(
             alt.X(
                 'nutrient',
                 title='',
@@ -385,6 +380,7 @@ def create_heatmap(filtered_df, selection):
                 alt.Tooltip('food', title='Food'),
                 alt.Tooltip('nutrient', title='Nutrient'),
                 alt.Tooltip('rdi', title='RDI', format='.1%'),
+                alt.Tooltip('tooltip_amount_and_unit:N', title='Amount'),
             ]
         )
         return pn.pane.Vega(heatmap)
@@ -419,7 +415,6 @@ def update_charts(food_group, nutrient_group, max_dv):
     # Set the heatmap up to listen to the selection in the scatter plot
     heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
-    # TODO: make scatter plot update properly (out of sync with filtering)
     template.sidebar.extend(scatter)
 
     return pn.Column(heatmap, pn.Column(scatter, visible=False))
