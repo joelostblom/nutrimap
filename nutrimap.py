@@ -361,7 +361,9 @@ def create_heatmap(filtered_df, selection):
     if filtered_df.shape[0] == 0:
         return None
     else:
-        heatmap = alt.Chart(filtered_df).mark_rect().encode(
+        heatmap = alt.Chart(filtered_df).mark_rect().transform_calculate(
+            tooltip_amount_and_unit = "round(100 * datum.amount) / 100 + ' ' + datum.unit"
+        ).encode(
             alt.X(
                 'nutrient',
                 title='',
@@ -376,8 +378,7 @@ def create_heatmap(filtered_df, selection):
                 alt.Tooltip('food', title='Food'),
                 alt.Tooltip('nutrient', title='Nutrient'),
                 alt.Tooltip('rdi', title='RDI', format='.1%'),
-                alt.Tooltip('amount', title='Amount', format='.2f'),
-                alt.Tooltip('unit', title='Unit')
+                alt.Tooltip('tooltip_amount_and_unit:N', title='Amount'),
             ]
         )
         return pn.pane.Vega(heatmap)
