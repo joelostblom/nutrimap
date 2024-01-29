@@ -261,7 +261,7 @@ def get_food_group(food) -> str:
 # fill NA values of wide-form foods data with column mean value
 def fill_na_mean(data):
     for col in data.columns[data.isnull().any(axis=0)]:
-        data[col].fillna(data[col].mean(),inplace=True)
+        data[col] = data[col].fillna(data[col].mean())
     
     return data
 
