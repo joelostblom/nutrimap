@@ -1,6 +1,7 @@
 import altair as alt
 import pandas as pd
 import panel as pn
+pn.extension('vega')
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA as pca
@@ -273,8 +274,11 @@ def fill_na_mean(data):
     
     return data
 
-# create a scatter plot filtered by food/nutrient group reduced to 2 dimensions
-def pca_scatter_2_components(data):
+# selects interval over scatterplot for filtering heatmap
+#brush = alt.selection_interval(fields = ["food"])
+
+# perform PCA to reduce dataframe to 2 dimensions
+def pca_2_components(data):
     data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index()
     data.columns = data.columns.get_level_values(0)
     data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
@@ -302,8 +306,14 @@ def pca_scatter_2_components(data):
     pca_2_df = pd.DataFrame(X_pca_2, columns=("component_1", "component_2"))
     pca_2_df['food'] = data["food"]
     pca_2_df['food_group'] = data["food_group"]
+
+    return pca_2_df
+
+def make_scatter(pca_data):
     
-    chart = alt.Chart(pca_2_df).mark_circle(size=50).encode(
+    brush = alt.selection_interval(name = "brush")
+
+    scatter = alt.Chart(pca_data).mark_circle(size=50).encode(
         alt.X("component_1",
               title="Component 1"
         ),
@@ -313,19 +323,24 @@ def pca_scatter_2_components(data):
         alt.Color("food_group",
                   title="Food Group"
         ),
+        # color = alt.condition(brush, "food_group", alt.value("lightgray")), # color selected points only
         tooltip="food"
-    ).interactive()
-    
-    return chart
+    ).add_params(brush)
+
+    return pn.pane.Vega(scatter)
 
 # sort data using hierarchical clustering and optimal leaf-ordering
 def sort_similar_foods(filtered_df):
     """
     requires that the data matches the input of create_heatmap function
     """
+    # No sorting needed if there are less than 2 data points
+    if filtered_df['food'].nunique() < 2:
+        return []
+
     wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index()
     wide_data.columns = wide_data.columns.get_level_values(0)
-    
+
      # fill NA values with column mean
     wide_data = fill_na_mean(wide_data)
 
@@ -340,30 +355,48 @@ def sort_similar_foods(filtered_df):
     return wide_data.loc[optimal_order, 'food'].tolist()
 
 # create a heatmap chart using filtered data
-def create_heatmap(filtered_df):
+def create_heatmap(filtered_df, selection):
+    pca_df = pca_2_components(filtered_df)
 
-    chart = alt.Chart(filtered_df).mark_rect().encode(
-        alt.X(
-            'nutrient',
-            title='',
-            axis=alt.Axis(
-                orient='top',
-                labelAngle=-45
-            )
-        ),
-        alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
-        alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
-        tooltip=[
-            alt.Tooltip('food', title='Food'),
-            alt.Tooltip('nutrient', title='Nutrient'),
-            alt.Tooltip('rdi', title='RDI', format='.1%'),
+    # Inlclude only food items selected in the scatter plot
+    if selection:
+        pca_df = pca_df[
+            pca_df["component_1"].between(selection["component_1"][0], selection["component_1"][1])
+            & pca_df["component_2"].between(selection["component_2"][0], selection["component_2"][1])
         ]
-    )
-    return chart
+        filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"].unique())]
 
-# tell panel to reload chart when parameters change
+    # No need to create a chart if there are no points selected
+    if filtered_df.shape[0] == 0:
+        return None
+    else:
+        heatmap = alt.Chart(filtered_df).mark_rect().encode(
+            alt.X(
+                'nutrient',
+                title='',
+                axis=alt.Axis(
+                    orient='top',
+                    labelAngle=-45
+                )
+            ),
+            alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
+            alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
+            tooltip=[
+                alt.Tooltip('food', title='Food'),
+                alt.Tooltip('nutrient', title='Nutrient'),
+                alt.Tooltip('rdi', title='RDI', format='.1%'),
+            ]
+        )
+        return pn.pane.Vega(heatmap)
+    
+template = pn.template.BootstrapTemplate(site='Nutrimap',
+    title='A cure for food label indigestion',
+    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv]
+    )
+
+# Re-filter the dataframe and re-create the charts when the eidget values change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
-def make_plot(food_group, nutrient_group, max_dv):
+def update_charts(food_group, nutrient_group, max_dv):
     # Find all the values of each selected groups (e.g. all the food names for type "vegetable")
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
@@ -379,16 +412,18 @@ def make_plot(food_group, nutrient_group, max_dv):
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
-    # Create the Altair chart object
-    scatter = pca_scatter_2_components(filtered_df)
-    heatmap = create_heatmap(filtered_df)
 
-    return alt.vconcat(scatter, heatmap)
+    # Create the Altair charts
+    pca_data = pca_2_components(filtered_df)
+    scatter = make_scatter(pca_data)
+    # Set the heatmap up to listen to the selection in the scatter plot
+    heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
-# Build the dashboard
-pn.template.BootstrapTemplate(
-    site='Nutrimap',
-    title='A cure for food label indigestion',
-    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv],
-    main=[make_plot],
-).servable()
+    # TODO: make scatter plot update properly (out of sync with filtering)
+    template.sidebar.extend(scatter)
+
+    return pn.Column(heatmap, pn.Column(scatter, visible=False))
+
+template.main.append(update_charts)
+
+template.servable()
