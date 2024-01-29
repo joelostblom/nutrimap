@@ -1,4 +1,4 @@
-importScripts("https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js");
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js");
 
 function sendPatch(patch, buffers, msg_id) {
   self.postMessage({
@@ -15,7 +15,7 @@ async function startApplication() {
   self.pyodide.globals.set("sendPatch", sendPatch);
   console.log("Loaded!");
   await self.pyodide.loadPackage("micropip");
-  const env_spec = ['https://cdn.holoviz.org/panel/0.14.3/dist/wheels/bokeh-2.4.3-py3-none-any.whl', 'https://cdn.holoviz.org/panel/0.14.3/dist/wheels/panel-0.14.3-py3-none-any.whl', 'pyodide-http==0.1.0', 'altair', 'pandas']
+  const env_spec = ['https://cdn.holoviz.org/panel/wheels/bokeh-3.3.4-py3-none-any.whl', 'https://cdn.holoviz.org/panel/1.3.8/dist/wheels/panel-1.3.8-py3-none-any.whl', 'pyodide-http==0.2.1', 'altair', 'numpy', 'pandas', 'scipy', 'scikit-learn']
   for (const pkg of env_spec) {
     let pkg_name;
     if (pkg.endsWith('.whl')) {
@@ -50,37 +50,50 @@ init_doc()
 import altair as alt
 import pandas as pd
 import panel as pn
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA as pca
+from scipy.cluster import hierarchy 
 
-# import pyodide_http
-# pyodide_http.patch_all()  # Patch all libraries
+pn.extension('vega')
 
-# get RDI values
-url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
-rdis = pd.read_csv(url, comment='#')
+# Read RDI and food data
+rdi_url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/matched_rdi_sr_nih.csv'
+rdis = pd.read_csv(rdi_url, comment='#')
 
-def compute_rdi_proportion(row):
-    '''Calculate the proportion of the RDI contained in each nutrient'''
-    new_row = pd.Series(dtype=float)
-    for col_name in row.index:
-        nutrient_rdi = rdis.loc[rdis['MatchedNutrient'] == col_name, 'Amount'].to_numpy()[0]
-        rdi_proportion = round(row[col_name] / nutrient_rdi, 3)
-        # Round to 2 significant digits https://stackoverflow.com/a/48812729/2166823
-        new_row.loc[col_name] = rdi_proportion  #
-    return new_row
+food_url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
+foods = pd.read_csv(food_url, index_col=0)
 
-url = 'https://raw.githubusercontent.com/joelostblom/nutrimap/main/data/processed/foods.csv'
-foods = pd.read_csv(
-    url,
-    index_col=0
-).apply(
-    compute_rdi_proportion,
-    axis=1
-).reset_index().melt(
+# Fill in some missing values via manual lookups
+foods.loc['Oats', 'Sugar'] = 1.1
+foods.loc['Oats', 'Selenium'] = 28.9
+foods.loc['Oats', 'Vitamin E'] = 0.42
+foods.loc['Oats', 'Vitamin K'] = 2
+foods.loc['Oats', 'beta-Carotene'] = 0
+foods.loc['Oats', 'alpha-Carotene'] = 0
+foods.loc['Oats', 'beta-Cryptoxanthin'] = 0
+foods.loc['Oats', 'Lycopene'] = 0
+foods.loc['Oats', 'Lutein + zeaxanthin'] = 180
+
+foods.loc['Quinoa, uncooked', 'Sugar'] = 6.1
+foods.loc['Quinoa, uncooked', 'Vitamin C'] = 0
+foods.loc['Buckwheat', 'Sugar'] = 1.9
+foods.loc['Millet, raw', 'Sugar'] = 1.5
+
+# Add RDI to the foods df
+foods = foods.reset_index().melt(
     id_vars='food',
-    value_name='rdi',
+    value_name='amount',
     ignore_index=False
 ).rename(
     columns={'variable': 'nutrient'}
+).assign(
+    unit=lambda df: df['nutrient'].map(rdis.set_index('MatchedNutrient')['Unit']),
+    rdi_max=lambda df: df['nutrient'].map(rdis.set_index('MatchedNutrient')['Amount']),
+    # Reassign rdi as a proportion instead
+    rdi=lambda df: df['amount'] / df['rdi_max']
+).drop(
+    columns='rdi_max'
 )
 
 food_groups = {
@@ -288,10 +301,147 @@ max_dv = pn.widgets.IntSlider(
     value=300,
 )
 
+# function to get food group for each food in foods dataframe
+def get_food_group(food) -> str:
+    for k in food_groups:
+        if food in food_groups.get(k):
+            return k
+        
+# fill NA values of wide-form foods data with column mean value
+def fill_na_mean(data):
+    for col in data.columns[data.isnull().any(axis=0)]:
+        data[col] = data[col].fillna(data[col].mean())
+    
+    return data
 
-# tell panel to reload chart when parameters change
+# selects interval over scatterplot for filtering heatmap
+#brush = alt.selection_interval(fields = ["food"])
+
+# perform PCA to reduce dataframe to 2 dimensions
+def pca_2_components(data):
+    data = pd.pivot(data, index="food", columns="nutrient", values="rdi").reset_index()
+    data.columns = data.columns.get_level_values(0)
+    data['food_group'] = data.apply(lambda row: get_food_group(row["food"]), axis=1)
+
+    # fill NA values with column mean
+    data = fill_na_mean(data)
+
+    X = data.iloc[:, 1:-1].values
+    
+    # create scaler object
+    scaler = StandardScaler()
+
+    # get mean and standard deviation
+    scaler.fit(X)
+
+    # transform values
+    X_scaled = scaler.transform(X)
+    
+    # reduce filtered data to n dimensions using PCA
+    pca_2 = pca(n_components = 2, random_state = 2023)
+    pca_2.fit(X_scaled)
+    X_pca_2 = pca_2.transform(X_scaled)
+    
+    # convert numpy array to dataframe
+    pca_2_df = pd.DataFrame(X_pca_2, columns=("component_1", "component_2"))
+    pca_2_df['food'] = data["food"]
+    pca_2_df['food_group'] = data["food_group"]
+
+    return pca_2_df
+
+def make_scatter(pca_data):
+
+    brush = alt.selection_interval(name = "brush")
+
+    scatter = alt.Chart(
+        pca_data,
+        width=200,
+        height=200,
+        title=alt.Title(
+            ' ',
+            subtitle="Food similarity (drag to select)",
+            anchor='start',
+        )
+    ).mark_circle(size=50).encode(
+        alt.X("component_1", title="").axis(domain=False, ticks=False, labels=False),
+        alt.Y("component_2", title="").axis(domain=False, ticks=False, labels=False),
+        color = alt.condition(brush, alt.Color("food_group:N", title=""), alt.value("lightgray")),
+        tooltip="food"
+    ).add_params(brush)
+
+    return pn.pane.Vega(scatter)
+
+# sort data using hierarchical clustering and optimal leaf-ordering
+def sort_similar_foods(filtered_df):
+    """
+    requires that the data matches the input of create_heatmap function
+    """
+    # No sorting needed if there are less than 2 data points
+    if filtered_df['food'].nunique() < 2:
+        return []
+
+    wide_data = pd.pivot(filtered_df, index="food", columns="nutrient", values="rdi").reset_index()
+    wide_data.columns = wide_data.columns.get_level_values(0)
+
+     # fill NA values with column mean
+    wide_data = fill_na_mean(wide_data)
+
+    X = wide_data.iloc[:, 1:]
+
+    # using average method
+    Z = hierarchy.linkage(X, method="average", optimal_ordering=True)
+
+    # find the optimal order of row indexes according to the clustering algorithm
+    optimal_order = hierarchy.leaves_list(Z)
+
+    return wide_data.loc[optimal_order, 'food'].tolist()
+
+# create a heatmap chart using filtered data
+def create_heatmap(filtered_df, selection):
+    pca_df = pca_2_components(filtered_df)
+
+    # Inlclude only food items selected in the scatter plot
+    if selection:
+        pca_df = pca_df[
+            pca_df["component_1"].between(selection["component_1"][0], selection["component_1"][1])
+            & pca_df["component_2"].between(selection["component_2"][0], selection["component_2"][1])
+        ]
+        filtered_df = filtered_df[filtered_df["food"].isin(pca_df["food"].unique())]
+
+    # No need to create a chart if there are no points selected
+    if filtered_df.shape[0] == 0:
+        return None
+    else:
+        heatmap = alt.Chart(filtered_df).mark_rect().transform_calculate(
+            tooltip_amount_and_unit = "round(100 * datum.amount) / 100 + ' ' + datum.unit"
+        ).encode(
+            alt.X(
+                'nutrient',
+                title='',
+                axis=alt.Axis(
+                    orient='top',
+                    labelAngle=-45
+                )
+            ),
+            alt.Y('food', title='', axis=alt.Axis(orient='right'), sort=sort_similar_foods(filtered_df)),
+            alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
+            tooltip=[
+                alt.Tooltip('food', title='Food'),
+                alt.Tooltip('nutrient', title='Nutrient'),
+                alt.Tooltip('rdi', title='RDI', format='.1%'),
+                alt.Tooltip('tooltip_amount_and_unit:N', title='Amount'),
+            ]
+        )
+        return pn.pane.Vega(heatmap)
+    
+template = pn.template.BootstrapTemplate(site='Nutrimap',
+    title='A cure for food label indigestion',
+    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv]
+    )
+
+# Re-filter the dataframe and re-create the charts when the eidget values change
 @pn.depends(food_group.param.value, nutrient_group.param.value, max_dv.param.value)
-def make_plot(food_group, nutrient_group, max_dv):
+def update_charts(food_group, nutrient_group, max_dv):
     # Find all the values of each selected groups (e.g. all the food names for type "vegetable")
     selected_foods = []
     [selected_foods.extend(food_groups[food]) for food in food_group]
@@ -307,34 +457,20 @@ def make_plot(food_group, nutrient_group, max_dv):
         'food.isin(@selected_foods)'
         '& nutrient.isin(@selected_nutrients)'
     )
-    # Create the Altair chart object
-    chart = alt.Chart(filtered_df).mark_rect().encode(
-        alt.X(
-            'nutrient',
-            title='',
-            axis=alt.Axis(
-                orient='top',
-                labelAngle=-45
-            )
-        ),
-        alt.Y('food', title='', axis=alt.Axis(orient='right')),
-        alt.Color('rdi', title="Percent of RDI", legend=alt.Legend(format='.0%')),
-        tooltip=[
-            alt.Tooltip('food', title='Food'),
-            alt.Tooltip('nutrient', title='Nutrient'),
-            alt.Tooltip('rdi', title='RDI', format='.1%'),
-        ]
-    )
-    return chart
 
+    # Create the Altair charts
+    pca_data = pca_2_components(filtered_df)
+    scatter = make_scatter(pca_data)
+    # Set the heatmap up to listen to the selection in the scatter plot
+    heatmap = pn.bind(create_heatmap, filtered_df, scatter.selection.param.brush)
 
-# Build the dashboard
-pn.template.FastListTemplate(
-    site='Nutrimap',
-    title='A cure for food label indigestion',
-    sidebar=[pn.pane.Markdown("## Settings"), food_group, nutrient_group, max_dv],
-    main=[make_plot],
-).servable()
+    template.sidebar.extend(scatter)
+
+    return pn.Column(heatmap, pn.Column(scatter, visible=False))
+
+template.main.append(update_charts)
+
+template.servable()
 
 
 await write_doc()
@@ -369,19 +505,19 @@ self.onmessage = async (event) => {
     _link_docs_worker(state.curdoc, sendPatch, setter='js')
     `)
   } else if (msg.type === 'patch') {
+    self.pyodide.globals.set('patch', msg.patch)
     self.pyodide.runPythonAsync(`
-    import json
-
-    state.curdoc.apply_json_patch(json.loads('${msg.patch}'), setter='js')
+    state.curdoc.apply_json_patch(patch.to_py(), setter='js')
     `)
     self.postMessage({type: 'idle'})
   } else if (msg.type === 'location') {
+    self.pyodide.globals.set('location', msg.location)
     self.pyodide.runPythonAsync(`
     import json
     from panel.io.state import state
     from panel.util import edit_readonly
     if state.location:
-        loc_data = json.loads("""${msg.location}""")
+        loc_data = json.loads(location)
         with edit_readonly(state.location):
             state.location.param.update({
                 k: v for k, v in loc_data.items() if k in state.location.param
